@@ -830,7 +830,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
           xdmFieldGroup: 'UserProfile',
           xdmDataType: 'Object',
           latency: '100ms',
-          identity: 'User ID',
+          identity: 'Adobe GUID',
           historicalDataEnabled: true,
           dataSteward: 'Data Steward',
           dataSource: 'Data Source',
@@ -1614,7 +1614,9 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
           {/* Right Panel - Content Tabs */}
           <Box sx={{ 
             flex: 1, 
-            overflow: 'auto',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
             backgroundColor: 'white',
             borderRadius: '12px',
             boxShadow: `0 2px 12px ${alpha('#000', 0.04)}`,
@@ -1623,7 +1625,10 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
               borderBottom: 1, 
               borderColor: alpha(theme.palette.divider, 0.08),
               px: 2,
-              mb: 2
+              position: 'sticky',
+              top: 0,
+              backgroundColor: 'white',
+              zIndex: 9,
             }}>
               <Tabs 
                 value={tabValue} 
@@ -1654,6 +1659,8 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
 
             {/* Tab Panels */}
             <Box sx={{ 
+              flex: 1,
+              overflow: 'auto',
               px: 0,
               pb: 2,
               width: '100%'
@@ -1718,13 +1725,13 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           letterSpacing: '0.5px',
                           color: alpha('#000', 0.5)
                         }}>
-                          Adobe GUID
+                          Identity
                         </Typography>
                         <Typography variant="body2" sx={{ 
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.identity}
+                          Adobe GUID
                         </Typography>
                       </Box>
                     </Grid>
