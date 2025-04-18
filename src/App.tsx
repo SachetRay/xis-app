@@ -1,6 +1,6 @@
 import React from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import DataWizard from './components/DataWizard/DataWizard';
 import AttributeDetails from './components/AttributeDetails/AttributeDetails';

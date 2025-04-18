@@ -2,7 +2,7 @@
   "name": "data-intelligence-hub",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://sachet.github.io/XIS",
+  "homepage": "https://sachetray.github.io/xis-app/",
   "type": "module",
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -27,7 +27,7 @@
     "server": "NODE_OPTIONS=\"--loader ts-node/esm\" ts-node-dev --respawn --transpile-only server/src/index.mts",
     "dev": "concurrently \"npm run start\" \"npm run server\"",
     "deploy-demo": "./deploy-demo.sh",
-    "predeploy": "npm run build",
+    "predeploy": "npm run build && node fix-paths.js",
     "deploy": "gh-pages -d build"
   },
   "devDependencies": {

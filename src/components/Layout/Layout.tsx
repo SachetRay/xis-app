@@ -230,11 +230,37 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* AppBar */}
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'white',
+          color: 'text.primary',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { md: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            Xperience Intelligence Studio
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
       {/* Sidebar */}
       <Box
         component="nav"
         sx={{
-          width: { xs: 0, md: 240 },
+          width: { xs: 0, md: isExpanded ? expandedWidth : collapsedWidth },
           flexShrink: { md: 0 },
           borderRight: '1px solid',
           borderColor: 'divider',
@@ -243,6 +269,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           height: '100vh',
           zIndex: 1200,
           bgcolor: 'background.paper',
+          transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
         }}
       >
         {/* Mobile drawer */}
@@ -251,31 +281,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true,
+            keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
+            display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
               width: expandedWidth,
-              backgroundColor: 'transparent',
-              border: 'none',
+              backgroundColor: 'background.paper',
             },
           }}
         >
           {drawer}
         </Drawer>
-        
+
         {/* Desktop drawer */}
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', sm: 'block' },
+            display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
               width: isExpanded ? expandedWidth : collapsedWidth,
-              backgroundColor: 'transparent',
-              border: 'none',
-              boxSizing: 'border-box',
-              overflowX: 'hidden',
+              backgroundColor: 'background.paper',
               transition: theme.transitions.create('width', {
                 easing: theme.transitions.easing.sharp,
                 duration: theme.transitions.duration.enteringScreen,
@@ -287,26 +315,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {drawer}
         </Drawer>
       </Box>
-      
+
       {/* Main content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 0,
-          width: { xs: '100%', md: `calc(100% - 240px)` },
-          ml: { xs: 0, md: '240px' },
-          height: '100vh',
-          overflow: 'hidden',
-          position: 'relative',
+          p: 3,
+          width: { md: `calc(100% - ${isExpanded ? expandedWidth : collapsedWidth}px)` },
+          ml: { md: `${isExpanded ? expandedWidth : collapsedWidth}px` },
+          mt: '64px', // Add margin top to account for AppBar height
+          transition: theme.transitions.create(['width', 'margin'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
         }}
       >
-        {/* Demo mode indicator */}
+        {/* Demo mode indicator - moved to bottom right */}
         {FEATURES.showDemoIndicator && (
           <Box
             sx={{
               position: 'fixed',
-              top: 16,
+              bottom: 16,
               right: 16,
               zIndex: 1300,
               bgcolor: 'warning.main',
