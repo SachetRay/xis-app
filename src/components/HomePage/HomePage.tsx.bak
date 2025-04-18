@@ -1,0 +1,518 @@
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  IconButton,
+  alpha,
+  useTheme,
+  Button,
+  InputBase,
+  Avatar,
+  useMediaQuery,
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  AutoFixHigh as DataWizardIcon,
+  Code as DevToolboxIcon,
+  Security as DataGuardianIcon,
+  Group as SegmentGenieIcon,
+  Storage as ResourceIQIcon,
+  Description as DocumentIcon,
+  QuestionAnswer as AskDGPIcon,
+  Update as UpdateIcon,
+  HealthAndSafety as HealthIcon,
+  Recommend as RecommendIcon,
+  NewReleases as WhatsNewIcon,
+  Add as AddIcon,
+  Warning as WarningIcon,
+} from '@mui/icons-material';
+
+interface Tool {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+}
+
+const tools: Tool[] = [
+  {
+    id: 'data-wizard',
+    name: 'Data Wizard',
+    icon: <DataWizardIcon />,
+    color: '#673AB7', // Deep Purple
+  },
+  {
+    id: 'dev-toolbox',
+    name: 'Dev Toolbox',
+    icon: <DevToolboxIcon />,
+    color: '#FF9800', // Orange
+  },
+  {
+    id: 'data-guardian',
+    name: 'Data Guardian',
+    icon: <DataGuardianIcon />,
+    color: '#2196F3', // Blue
+  },
+  {
+    id: 'segment-genie',
+    name: 'SegmentGenie',
+    icon: <SegmentGenieIcon />,
+    color: '#9C27B0', // Purple
+  },
+  {
+    id: 'resource-iq',
+    name: 'ResourceIQ',
+    icon: <ResourceIQIcon />,
+    color: '#F44336', // Red
+  },
+  {
+    id: 'document-hub',
+    name: 'Document Hub',
+    icon: <DocumentIcon />,
+    color: '#00BCD4', // Cyan
+  },
+  {
+    id: 'ask-dgp',
+    name: 'Ask DGP',
+    icon: <AskDGPIcon />,
+    color: '#795548', // Brown
+  },
+];
+
+interface UpdatePill {
+  id: string;
+  icon: React.ReactNode;
+  label: string;
+}
+
+const updatePills: UpdatePill[] = [
+  {
+    id: 'updates',
+    icon: <UpdateIcon />,
+    label: 'Data Updates'
+  },
+  {
+    id: 'health',
+    icon: <HealthIcon />,
+    label: 'Data Health'
+  },
+  {
+    id: 'recommendations',
+    icon: <RecommendIcon />,
+    label: 'Recommendations'
+  },
+  {
+    id: 'whats-new',
+    icon: <WhatsNewIcon />,
+    label: "What's New"
+  },
+];
+
+interface UpdateCard {
+  id: string;
+  type: 'added' | 'updated' | 'deprecated';
+  date: string;
+  title: string;
+  description: string;
+  ticketId: string;
+}
+
+const updateCards: UpdateCard[] = [
+  {
+    id: '1',
+    type: 'added',
+    date: 'Mar 02, 2025',
+    title: 'New Schema Added',
+    description: 'A new schema has been introduced to track e-commerce order events, including order creation, payment status, and fulfillment details. It will enable better tracking and segmentation of customer purchase behaviors.',
+    ticketId: 'JIRA Ticket'
+  },
+  {
+    id: '2',
+    type: 'updated',
+    date: 'Mar 02, 2025',
+    title: 'Price Attribute in Experience Event',
+    description: 'The data type has been changed from Integer to Decimal to support fractional pricing.',
+    ticketId: 'JIRA Ticket'
+  },
+  {
+    id: '3',
+    type: 'deprecated',
+    date: 'Mar 02, 2025',
+    title: 'legacy_subscription_status in Profile Attributes',
+    description: 'This attribute is being replaced by subscription_status_v2, which provides more detailed subscription states. Users should transition to the new attribute by June 30, 2025. Reach out to Priya Shanmugan for any concerns!',
+    ticketId: 'JIRA Ticket'
+  }
+];
+
+const HomePage: React.FC = () => {
+  const theme = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+  const getUpdateIcon = (type: UpdateCard['type']) => {
+    switch (type) {
+      case 'added':
+        return <AddIcon fontSize="small" />;
+      case 'updated':
+        return <UpdateIcon fontSize="small" />;
+      case 'deprecated':
+        return <WarningIcon fontSize="small" />;
+    }
+  };
+
+  const getUpdateColor = (type: UpdateCard['type']) => {
+    switch (type) {
+      case 'added':
+        return '#10b981'; // Success green
+      case 'updated':
+        return '#3b82f6'; // Info blue
+      case 'deprecated':
+        return '#ef4444'; // Error red
+    }
+  };
+
+  return (
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      minHeight: '100vh',
+      p: { xs: '16px', sm: '24px', md: '32px' },
+      gap: { xs: 2, sm: 3, md: 4 },
+      bgcolor: '#ffffff',
+      maxWidth: '1400px',
+      mx: 'auto',
+    }}>
+      {/* Welcome Message */}
+      <Box sx={{ 
+        mb: { xs: 2, sm: 3 },
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: { xs: 'flex-start', sm: 'center' },
+        justifyContent: 'space-between',
+      }}>
+        <Box>
+          <Typography sx={{ 
+            fontSize: { xs: '24px', sm: '28px' },
+            fontWeight: 600,
+            color: alpha('#000', 0.87),
+            letterSpacing: '-0.01em',
+            mb: 1
+          }}>
+            Good Afternoon, Sachet!
+          </Typography>
+          <Typography sx={{ 
+            fontSize: '14px',
+            color: alpha('#000', 0.6),
+          }}>
+            Welcome to your Data Intelligence Hub
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Search Bar */}
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          height: { xs: '48px', sm: '56px' },
+          borderRadius: '16px',
+          border: '1px solid',
+          borderColor: alpha(theme.palette.divider, 0.08),
+          bgcolor: alpha('#fff', 0.8),
+          backdropFilter: 'blur(8px)',
+          mb: { xs: 3, sm: 4 },
+          transition: 'all 0.2s ease-in-out',
+          boxShadow: `0 4px 20px ${alpha('#000', 0.04)}`,
+          '&:hover': {
+            borderColor: alpha(theme.palette.primary.main, 0.3),
+            boxShadow: `0 4px 24px ${alpha(theme.palette.primary.main, 0.12)}`,
+          },
+          '&:focus-within': {
+            borderColor: theme.palette.primary.main,
+            boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.1)}`,
+          }
+        }}
+      >
+        <IconButton sx={{ 
+          p: { xs: '12px', sm: '14px' },
+          color: alpha('#000', 0.54),
+          '&:hover': { bgcolor: 'transparent' }
+        }}>
+          <SearchIcon fontSize="medium" />
+        </IconButton>
+        <InputBase
+          placeholder="Search for any attributes..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{
+            ml: 1,
+            flex: 1,
+            fontSize: '16px',
+            color: alpha('#000', 0.87),
+            '& input::placeholder': {
+              color: alpha('#000', 0.45),
+              opacity: 1
+            }
+          }}
+        />
+      </Paper>
+
+      {/* Tools Grid */}
+      <Box sx={{ 
+        display: 'flex', 
+        flexWrap: 'wrap',
+        gap: 0,
+        width: '100%'
+      }}>
+        {tools.map((tool) => (
+          <Box
+            key={tool.id}
+            sx={{
+              width: { xs: '16.66%', sm: '25%', md: '33.33%', lg: '14.28%' },
+              p: { xs: 0.5, sm: 0.75 },
+              height: { xs: '60px', sm: '70px' },
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: { xs: 0.25, sm: 0.5 },
+              cursor: 'pointer',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                '& .tool-icon': {
+                  transform: 'scale(1.1)',
+                  color: tool.color,
+                }
+              }
+            }}
+          >
+            <Box
+              className="tool-icon"
+              sx={{
+                width: { xs: '24px', sm: '28px' },
+                height: { xs: '24px', sm: '28px' },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '6px',
+                color: alpha(tool.color, 0.7),
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              {tool.icon}
+            </Box>
+            <Typography
+              sx={{
+                fontSize: { xs: '11px', sm: '12px' },
+                fontWeight: 500,
+                color: alpha('#000', 0.87),
+                textAlign: 'center',
+                lineHeight: 1.1
+              }}
+            >
+              {tool.name}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Update Pills */}
+      <Box sx={{ 
+        display: 'flex',
+        gap: 1,
+        flexWrap: 'wrap',
+        mt: { xs: 2, sm: 3 },
+        justifyContent: 'center'
+      }}>
+        {updatePills.map((pill) => (
+          <Paper
+            key={pill.id}
+            elevation={0}
+            sx={{
+              px: { xs: 2, sm: 2.5 },
+              height: { xs: '32px', sm: '36px' },
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              cursor: 'pointer',
+              borderRadius: '18px',
+              border: '1px solid',
+              borderColor: pill.id === 'updates' 
+                ? alpha(theme.palette.primary.main, 0.3)
+                : alpha(theme.palette.divider, 0.08),
+              bgcolor: pill.id === 'updates' 
+                ? alpha(theme.palette.primary.main, 0.08)
+                : '#ffffff',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                borderColor: alpha(theme.palette.primary.main, 0.3),
+                bgcolor: pill.id === 'updates' 
+                  ? alpha(theme.palette.primary.main, 0.12)
+                  : alpha(theme.palette.primary.main, 0.04),
+                boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.1)}`,
+              }
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                color: pill.id === 'updates' 
+                  ? theme.palette.primary.main
+                  : alpha('#000', 0.6),
+                '& svg': {
+                  fontSize: { xs: '16px', sm: '18px' }
+                }
+              }}
+            >
+              {pill.icon}
+            </Box>
+            <Typography
+              sx={{
+                fontSize: { xs: '13px', sm: '14px' },
+                fontWeight: 500,
+                color: pill.id === 'updates' 
+                  ? theme.palette.primary.main
+                  : alpha('#000', 0.87),
+                lineHeight: 1
+              }}
+            >
+              {pill.label}
+            </Typography>
+          </Paper>
+        ))}
+      </Box>
+
+      {/* Updates Section */}
+      <Box sx={{ 
+        display: 'flex',
+        flexDirection: 'column',
+        gap: { xs: 2, sm: 3 },
+        mt: { xs: 2, sm: 3 }
+      }}>
+        <Typography sx={{ 
+          fontSize: { xs: '16px', sm: '18px' },
+          fontWeight: 600,
+          color: alpha('#000', 0.87),
+          letterSpacing: '-0.01em'
+        }}>
+          March, 2025
+        </Typography>
+        <Grid container spacing={2}>
+          {updateCards.map((card) => (
+            <Grid item xs={12} key={card.id}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: { xs: '20px', sm: '24px' },
+                  borderRadius: '12px',
+                  border: '1px solid',
+                  borderColor: alpha(theme.palette.divider, 0.08),
+                  bgcolor: '#ffffff',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    borderColor: alpha(theme.palette.primary.main, 0.3),
+                    boxShadow: `0 4px 20px ${alpha('#000', 0.08)}`,
+                  }
+                }}
+              >
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'space-between', 
+                  alignItems: { xs: 'flex-start', sm: 'flex-start' },
+                  gap: { xs: 2, sm: 0 }
+                }}>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', flex: 1 }}>
+                    <Box
+                      sx={{
+                        width: { xs: '28px', sm: '32px' },
+                        height: { xs: '28px', sm: '32px' },
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '8px',
+                        bgcolor: alpha(getUpdateColor(card.type), 0.1),
+                        color: getUpdateColor(card.type),
+                        flexShrink: 0,
+                      }}
+                    >
+                      {getUpdateIcon(card.type)}
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Typography
+                          sx={{
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: getUpdateColor(card.type),
+                            textTransform: 'capitalize'
+                          }}
+                        >
+                          {card.type}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '13px',
+                            color: alpha('#000', 0.45),
+                          }}
+                        >
+                          {card.date}
+                        </Typography>
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontSize: { xs: '15px', sm: '16px' },
+                          fontWeight: 600,
+                          color: alpha('#000', 0.87),
+                          mb: 1
+                        }}
+                      >
+                        {card.title}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          color: alpha('#000', 0.6),
+                          lineHeight: 1.6
+                        }}
+                      >
+                        {card.description}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      borderColor: alpha(theme.palette.primary.main, 0.3),
+                      color: theme.palette.primary.main,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main,
+                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                      }
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </Box>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </Box>
+  );
+};
+
+export default HomePage; 
