@@ -1384,37 +1384,23 @@ const HomePage: React.FC = () => {
       </style>
 
       {/* Welcome Message */}
-      <Box sx={{ 
-        mb: { xs: 1, sm: 2 },
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        alignItems: { xs: 'flex-start', sm: 'center' },
-        justifyContent: 'space-between',
-        pb: 2,
-        borderBottom: '1px solid',
-        borderColor: 'rgba(0, 0, 0, 0.06)'
-      }}>
-        <Box>
-          <Typography sx={{ 
-            fontSize: { xs: '24px', sm: '28px' },
-            fontWeight: 600,
-            color: 'rgba(0, 0, 0, 0.87)',
-            letterSpacing: '-0.01em',
-            mb: 0.5,
-            background: 'linear-gradient(45deg, #1a237e 30%, #0066cc 90%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}>
-            {getGreeting()}, Sachet!
-          </Typography>
-          <Typography sx={{ 
-            fontSize: '14px',
-            color: 'rgba(0, 0, 0, 0.6)',
-            letterSpacing: '0.01em'
-          }}>
-            Welcome to your Xperience Intelligence Studio
-          </Typography>
-        </Box>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ 
+          fontWeight: 600, 
+          mb: 1,
+          background: 'linear-gradient(45deg, #673AB7 30%, #3F51B5 90%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+        }}>
+          {getGreeting()}, {userData.name}
+        </Typography>
+        <Typography sx={{ 
+          fontSize: '14px',
+          color: 'rgba(0, 0, 0, 0.6)',
+          letterSpacing: '0.01em'
+        }}>
+          Welcome to your Xperience Intelligence Studio
+        </Typography>
       </Box>
 
       {/* Search Bar */}
