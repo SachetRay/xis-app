@@ -1109,7 +1109,7 @@ const HomePage: React.FC = () => {
               }
             }
           }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
         >
           <TextField
             autoFocus
@@ -1117,7 +1117,7 @@ const HomePage: React.FC = () => {
             fullWidth
             placeholder="Search features, tools, or documentation..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             size="medium"
             sx={{
               '& .MuiOutlinedInput-root': {
@@ -1215,7 +1215,7 @@ const HomePage: React.FC = () => {
                       }}>
                         {searchResults
                           .filter(isTool)
-                          .map((result, index) => (
+                          .map((result: Tool, index: number) => (
                             <Box
                               key={index}
                               onClick={() => handleSearchResultClick(result)}
@@ -1299,7 +1299,7 @@ const HomePage: React.FC = () => {
                       <List>
                         {searchResults
                           .filter(isTreeNode)
-                          .map((result, index) => (
+                          .map((result: TreeNode, index: number) => (
                             <ListItem
                               key={index}
                               onClick={() => handleSearchResultClick(result)}
@@ -1392,7 +1392,7 @@ const HomePage: React.FC = () => {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         }}>
-          {getGreeting()}, {userData.name}
+          {getGreeting()}, Sachet
         </Typography>
         <Typography sx={{ 
           fontSize: '14px',
@@ -1407,7 +1407,7 @@ const HomePage: React.FC = () => {
       <TextField
         placeholder="Search..."
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
         onClick={() => setIsSearchExpanded(true)}
         size="medium"
         sx={{

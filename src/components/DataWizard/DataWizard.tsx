@@ -458,7 +458,7 @@ const DataWizard: React.FC = () => {
     }
     
     // Calculate the path from columns only
-    const path = newColumns.map(col => col.selectedItem?.name || '').filter(Boolean);
+    const path = newColumns.map((col: ColumnData) => col.selectedItem?.name || '').filter(Boolean);
     
     setSelectedDetails(getItemDetails(item, path));
     setSelectedPathIndex(null);
@@ -482,7 +482,7 @@ const DataWizard: React.FC = () => {
         }
         
         // Calculate path from columns only
-        const path = newColumns.map(col => col.selectedItem?.name || '').filter(Boolean);
+        const path = newColumns.map((col: ColumnData) => col.selectedItem?.name || '').filter(Boolean);
         
         setColumns(newColumns);
         setSelectedDetails(getItemDetails(clickedItem, path));
@@ -603,7 +603,7 @@ const DataWizard: React.FC = () => {
     </Box>
   );
 
-  const renderPath = (ref: React.RefObject<HTMLDivElement>, isClickable: boolean = true, isDetailsPanelPath: boolean = false) => (
+  const renderPath = (ref: React.RefObject<HTMLDivElement | null>, isClickable: boolean = true, isDetailsPanelPath: boolean = false) => (
     <Box
       ref={ref}
       sx={{ 
@@ -647,7 +647,7 @@ const DataWizard: React.FC = () => {
           }
         })
       }}>
-        {selectedDetails?.path?.map((item, index) => (
+        {selectedDetails?.path?.map((item: string, index: number) => (
           <React.Fragment key={index}>
             {index > 0 && (
               <ChevronRightIcon 
@@ -996,7 +996,7 @@ const DataWizard: React.FC = () => {
             fullWidth
             placeholder="Search attributes, events, or values..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             size="medium"
             sx={{
               '& .MuiOutlinedInput-root': {
@@ -1073,7 +1073,7 @@ const DataWizard: React.FC = () => {
             {searchQuery.trim() ? (
               searchResults.length > 0 ? (
                 <List>
-                  {searchResults.map((result, index) => (
+                  {searchResults.map((result: TreeNode, index: number) => (
                     <ListItem
                       key={index}
                       onClick={() => navigateToSearchResult(result)}
@@ -1213,7 +1213,7 @@ const DataWizard: React.FC = () => {
           <TextField
             placeholder="Search..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             onClick={() => setIsSearchExpanded(true)}
             size="small"
             sx={{
@@ -1280,7 +1280,7 @@ const DataWizard: React.FC = () => {
                 }
               }}
             >
-              {columns.map((column, index) => renderColumn(column, index))}
+              {columns.map((column: ColumnData, index: number) => renderColumn(column, index))}
               {columns.length === 1 && (
                 <Box
                   sx={{
