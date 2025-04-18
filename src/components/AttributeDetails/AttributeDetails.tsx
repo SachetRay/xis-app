@@ -1718,7 +1718,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           letterSpacing: '0.5px',
                           color: alpha('#000', 0.5)
                         }}>
-                          Adobe GUID
+                          Identity
                         </Typography>
                         <Typography variant="body2" sx={{ 
                           color: alpha('#000', 0.7), 
