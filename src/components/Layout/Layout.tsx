@@ -229,7 +229,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* AppBar */}
       <AppBar 
         position="fixed" 
@@ -323,12 +323,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           flexGrow: 1,
           p: 3,
           width: { md: `calc(100% - ${isExpanded ? expandedWidth : collapsedWidth}px)` },
-          ml: { md: `${isExpanded ? expandedWidth : collapsedWidth}px` },
-          mt: '64px', // Add margin top to account for AppBar height
+          marginLeft: { md: `${isExpanded ? expandedWidth : collapsedWidth}px` },
           transition: theme.transitions.create(['width', 'margin'], {
             easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
+            duration: theme.transitions.duration.enteringScreen,
           }),
+          height: '100vh',
+          overflow: 'auto',
+          paddingTop: '88px', // Account for AppBar + some padding
         }}
       >
         {/* Demo mode indicator - moved to bottom right */}
@@ -353,7 +355,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             }}
           >
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>DEMO MODE</Typography>
-            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>READ ONLY</Typography>
+            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>SACHET</Typography>
           </Box>
         )}
         

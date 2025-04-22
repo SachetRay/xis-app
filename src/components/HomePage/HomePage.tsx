@@ -37,8 +37,13 @@ import {
   Warning as WarningIcon,
   Folder as FolderIcon,
   InsertDriveFile as InsertDriveFileIcon,
+  KeyboardArrowRight as KeyboardArrowRightIcon,
+  FolderOpen as FolderOpenIcon,
 } from '@mui/icons-material';
 import { userData } from '../../data/userData';
+import { transformUserData } from '../../utils/userDataTransformer';
+import { transformToTree, type TreeNode, searchInTree } from '../../utils/treeTransform';
+import { useTransformedData } from '../../hooks/useTransformedData';
 
 interface Tool {
   id: string;
@@ -162,64 +167,6 @@ const updateCards: UpdateCard[] = [
   }
 ];
 
-interface TreeNode {
-  name: string;
-  type: 'folder' | 'file';
-  value?: any;
-  children?: TreeNode[];
-}
-
-// Function to transform userData into a tree structure
-const transformToTree = (data: any): TreeNode[] => {
-  const result: TreeNode[] = [];
-  
-  for (const [key, value] of Object.entries(data)) {
-    if (typeof value === 'object' && value !== null) {
-      if (Array.isArray(value)) {
-        result.push({
-          name: key,
-          type: 'file',
-          value: value
-        });
-      } else {
-        result.push({
-          name: key,
-          type: 'folder',
-          children: transformToTree(value)
-        });
-      }
-    } else {
-      result.push({
-        name: key,
-        type: 'file',
-        value: value
-      });
-    }
-  }
-  
-  return result;
-};
-
-// Function to search in the tree structure
-const searchInTree = (nodes: TreeNode[], query: string): TreeNode[] => {
-  let results: TreeNode[] = [];
-  
-  for (const node of nodes) {
-    // Check if the current node matches
-    if (node.name.toLowerCase().includes(query)) {
-      results.push(node);
-    }
-    
-    // If it's a folder, search in its children
-    if (node.type === 'folder' && node.children) {
-      const childResults = searchInTree(node.children, query);
-      results = [...results, ...childResults];
-    }
-  }
-  
-  return results;
-};
-
 // Function to get the path to a node
 const getPathToNode = (targetNode: TreeNode, tree: TreeNode[]): string[] => {
   const findPath = (nodes: TreeNode[], target: TreeNode, currentPath: string[]): string[] | null => {
@@ -253,6 +200,7 @@ const HomePage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const [activeUpdateSection, setActiveUpdateSection] = useState<string>('updates');
+  const { transformedData } = useTransformedData();
 
   // Get time-based greeting
   const getGreeting = () => {
@@ -299,18 +247,20 @@ const HomePage: React.FC = () => {
     if (searchQuery.trim()) {
       // Search in tools
       const toolResults = tools.filter(tool => 
-        tool.name.toLowerCase().includes(searchQuery.toLowerCase())
+        tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tool.id.toLowerCase().includes(searchQuery.toLowerCase())
       );
       
-      // Search in data tree
-      const dataResults = searchInTree(transformToTree(userData), searchQuery.toLowerCase());
+      // Search in transformed data tree
+      const dataResults = transformedData ? searchInTree(transformToTree(transformedData), searchQuery) : [];
       
-      // Combine results
-      setSearchResults([...toolResults, ...dataResults]);
+      // Combine results and remove duplicates
+      const uniqueResults = [...toolResults, ...dataResults];
+      setSearchResults(uniqueResults);
     } else {
       setSearchResults([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, transformedData]);
 
   const getUpdateIcon = (type: UpdateCard['type']) => {
     switch (type) {
@@ -340,9 +290,9 @@ const HomePage: React.FC = () => {
       // Handle tool navigation
       navigate(`/${result.id}`);
       setIsSearchExpanded(false);
-    } else {
-      // Handle data node navigation
-      const treeData = transformToTree(userData);
+    } else if (transformedData) {
+      // Handle data node navigation using transformed data
+      const treeData = transformToTree(transformedData);
       const path = getPathToNode(result, treeData);
       
       if (path.length > 0) {
@@ -417,10 +367,12 @@ const HomePage: React.FC = () => {
 
     return (
       <Box sx={{ 
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        p: { xs: 2, sm: 3 },
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: { xs: 2, sm: 2.5 },
-        mt: { xs: 2, sm: 3 }
       }}>
         <Typography sx={{ 
           fontSize: { xs: '16px', sm: '18px' },
@@ -610,10 +562,12 @@ const HomePage: React.FC = () => {
 
     return (
       <Box sx={{ 
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        p: { xs: 2, sm: 3 },
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: { xs: 2, sm: 2.5 },
-        mt: { xs: 2, sm: 3 }
       }}>
         <Typography sx={{ 
           fontSize: { xs: '16px', sm: '18px' },
@@ -766,10 +720,12 @@ const HomePage: React.FC = () => {
 
     return (
       <Box sx={{ 
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        p: { xs: 2, sm: 3 },
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: { xs: 2, sm: 2.5 },
-        mt: { xs: 2, sm: 3 }
       }}>
         <Typography sx={{ 
           fontSize: { xs: '16px', sm: '18px' },
@@ -871,10 +827,12 @@ const HomePage: React.FC = () => {
   // Updates Section (existing)
   const UpdatesSection = () => (
     <Box sx={{ 
+      backgroundColor: 'white',
+      borderRadius: '16px',
+      p: { xs: 2, sm: 3 },
+      height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      gap: { xs: 2, sm: 2.5 },
-      mt: { xs: 2, sm: 3 }
     }}>
       <Typography sx={{ 
         fontSize: { xs: '16px', sm: '18px' },
@@ -1026,37 +984,10 @@ const HomePage: React.FC = () => {
 
   return (
     <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      minHeight: '100vh',
-      p: { xs: '16px', sm: '24px', md: '32px' },
-      gap: { xs: 2, sm: 3, md: 4 },
-      bgcolor: '#ffffff',
+      width: '100%',
       maxWidth: '1400px',
-      mx: 'auto',
-      overflowY: 'auto',
-      height: '100vh',
-      pb: { xs: '80px', sm: '100px', md: '120px' },
-      '&::-webkit-scrollbar': {
-        width: '6px',
-        display: 'none', // Hide scrollbar by default
-      },
-      '&:hover::-webkit-scrollbar': {
-        display: 'block', // Show scrollbar only on hover
-      },
-      '&::-webkit-scrollbar-track': {
-        background: 'transparent',
-      },
-      '&::-webkit-scrollbar-thumb': {
-        background: alpha('#000', 0.1),
-        borderRadius: '3px',
-        '&:hover': {
-          background: alpha('#000', 0.2),
-        },
-      },
-      // For Firefox
-      scrollbarWidth: 'thin',
-      scrollbarColor: `${alpha('#000', 0.1)} transparent`,
+      margin: '0 auto',
+      position: 'relative',
     }}>
       {/* Search Overlay */}
       <Box
@@ -1068,7 +999,7 @@ const HomePage: React.FC = () => {
           bottom: 0,
           backgroundColor: 'rgba(255, 255, 255, 0.6)',
           backdropFilter: 'blur(8px)',
-          zIndex: 9999,
+          zIndex: 1200,
           display: isSearchExpanded ? 'flex' : 'none',
           alignItems: 'flex-start',
           justifyContent: 'center',
@@ -1077,8 +1008,12 @@ const HomePage: React.FC = () => {
           transition: 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           animation: isSearchExpanded ? 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
           '@keyframes fadeIn': {
-            '0%': { opacity: 0 },
-            '100%': { opacity: 1 }
+            '0%': {
+              opacity: 0,
+            },
+            '100%': {
+              opacity: 1,
+            }
           }
         }}
         onClick={() => setIsSearchExpanded(false)}
@@ -1086,11 +1021,11 @@ const HomePage: React.FC = () => {
         <Box
           sx={{
             width: '95%',
-            maxWidth: '1400px',
+            maxWidth: '1200px',
             backgroundColor: 'white',
-            borderRadius: '16px',
+            borderRadius: '24px',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            p: 3,
+            p: { xs: 2, sm: 3 },
             transform: isSearchExpanded ? 'translateY(0)' : 'translateY(-20px)',
             opacity: isSearchExpanded ? 1 : 0,
             transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -1109,21 +1044,21 @@ const HomePage: React.FC = () => {
               }
             }
           }}
-          onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           <TextField
             autoFocus
             inputRef={searchInputRef}
             fullWidth
-            placeholder="Search features, tools, or documentation..."
+            placeholder="Search attributes, events, or values..."
             value={searchQuery}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             size="medium"
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
+                height: { xs: '56px', sm: '64px' },
+                borderRadius: '16px',
                 backgroundColor: alpha('#fff', 0.8),
-                height: '64px',
                 '& fieldset': {
                   borderColor: alpha(theme.palette.divider, 0.1),
                 },
@@ -1135,21 +1070,27 @@ const HomePage: React.FC = () => {
                 }
               },
               '& .MuiInputBase-input': {
-                fontSize: '18px',
+                fontSize: { xs: '1rem', sm: '1.125rem' },
                 fontWeight: 500,
+                pl: 2
               },
               animation: isSearchExpanded ? 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
               '@keyframes fadeIn': {
-                '0%': { opacity: 0 },
-                '100%': { opacity: 1 }
+                '0%': {
+                  opacity: 0,
+                },
+                '100%': {
+                  opacity: 1,
+                }
               }
             }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon sx={{ 
-                    fontSize: 28, 
+                    fontSize: { xs: 24, sm: 28 }, 
                     color: alpha('#000', 0.4),
+                    ml: 1,
                     animation: isSearchExpanded ? 'pulse 1s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
                     '@keyframes pulse': {
                       '0%': {
@@ -1174,7 +1115,7 @@ const HomePage: React.FC = () => {
           <Box sx={{ 
             mt: 3, 
             overflow: 'auto',
-            maxHeight: '50vh',
+            maxHeight: 'calc(70vh - 120px)',
             '&::-webkit-scrollbar': { width: 4 },
             '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
             '&::-webkit-scrollbar-thumb': {
@@ -1192,93 +1133,93 @@ const HomePage: React.FC = () => {
               searchResults.length > 0 ? (
                 <Box>
                   {/* Tools Section */}
-                  {searchResults.filter(isTool).length > 0 && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography
-                        sx={{
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          color: alpha('#000', 0.6),
-                          mb: 1,
-                          px: 2,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em'
-                        }}
-                      >
-                        Tools
-                      </Typography>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        columnGap: '12px',
+                  <Box sx={{ mb: 4 }}>
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: alpha('#000', 0.6),
+                        mb: 2,
                         px: 2,
-                        flexWrap: 'wrap'
-                      }}>
-                        {searchResults
-                          .filter(isTool)
-                          .map((result: Tool, index: number) => (
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
+                      Tools & Features
+                    </Typography>
+                    <Box sx={{ 
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 2,
+                      px: 2
+                    }}>
+                      {tools
+                        .filter(tool => 
+                          tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          tool.id.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .map((tool) => (
+                          <Box
+                            key={tool.id}
+                            onClick={() => handleSearchResultClick(tool)}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1.5,
+                              p: 1.5,
+                              cursor: 'pointer',
+                              borderRadius: '12px',
+                              transition: 'all 0.2s ease-in-out',
+                              border: '1px solid',
+                              borderColor: alpha(tool.color, 0.1),
+                              '&:hover': {
+                                backgroundColor: alpha(tool.color, 0.05),
+                                transform: 'translateY(-2px)',
+                                borderColor: alpha(tool.color, 0.2),
+                              }
+                            }}
+                          >
                             <Box
-                              key={index}
-                              onClick={() => handleSearchResultClick(result)}
                               sx={{
-                                p: 2,
-                                height: '100px',
+                                width: 40,
+                                height: 40,
+                                borderRadius: '10px',
+                                backgroundColor: alpha(tool.color, 0.1),
                                 display: 'flex',
-                                flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: 1.5,
-                                cursor: 'pointer',
-                                borderRadius: '12px',
+                                color: tool.color,
                                 transition: 'all 0.2s ease-in-out',
-                                backgroundColor: alpha('#fff', 0.6),
-                                '&:hover': {
-                                  transform: 'translateY(-2px)',
-                                  backgroundColor: alpha('#fff', 0.8),
-                                  '& .tool-icon': {
-                                    transform: 'scale(1.1)',
-                                    color: result.color,
-                                  },
-                                  '& .tool-name': {
-                                    color: result.color,
-                                  }
+                                '& svg': {
+                                  fontSize: 24
                                 }
                               }}
                             >
-                              <Box
-                                className="tool-icon"
-                                sx={{
-                                  width: '32px',
-                                  height: '32px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: result.color,
-                                  transition: 'all 0.2s ease-in-out',
-                                  '& svg': {
-                                    fontSize: '24px'
-                                  }
-                                }}
-                              >
-                                {result.icon}
-                              </Box>
+                              {tool.icon}
+                            </Box>
+                            <Box>
                               <Typography
-                                className="tool-name"
                                 sx={{
-                                  fontSize: '13px',
-                                  fontWeight: 500,
-                                  color: alpha('#000', 0.7),
-                                  textAlign: 'center',
-                                  transition: 'color 0.2s ease-in-out',
-                                  lineHeight: 1.3
+                                  fontSize: '0.875rem',
+                                  fontWeight: 600,
+                                  color: alpha('#000', 0.87),
                                 }}
                               >
-                                {result.name}
+                                {tool.name}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontSize: '0.75rem',
+                                  color: alpha('#000', 0.5)
+                                }}
+                              >
+                                {tool.id}
                               </Typography>
                             </Box>
-                          ))}
-                      </Box>
+                          </Box>
+                        ))}
                     </Box>
-                  )}
+                  </Box>
 
                   {/* Data Items Section */}
                   {searchResults.filter(isTreeNode).length > 0 && (
@@ -1288,7 +1229,7 @@ const HomePage: React.FC = () => {
                           fontSize: '14px',
                           fontWeight: 600,
                           color: alpha('#000', 0.6),
-                          mb: 1,
+                          mb: 2,
                           px: 2,
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em'
@@ -1296,7 +1237,7 @@ const HomePage: React.FC = () => {
                       >
                         Data Items
                       </Typography>
-                      <List>
+                      <List sx={{ px: 1 }}>
                         {searchResults
                           .filter(isTreeNode)
                           .map((result: TreeNode, index: number) => (
@@ -1304,42 +1245,118 @@ const HomePage: React.FC = () => {
                               key={index}
                               onClick={() => handleSearchResultClick(result)}
                               sx={{
+                                p: 2,
                                 cursor: 'pointer',
-                                py: 2,
-                                px: 3,
+                                borderRadius: '12px',
                                 transition: 'all 0.2s ease-in-out',
-                                borderRadius: '8px',
+                                mb: 1,
                                 '&:hover': {
-                                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                                  backgroundColor: alpha('#000', 0.02),
                                   transform: 'translateX(4px)'
-                                },
+                                }
                               }}
                             >
-                              <ListItemIcon sx={{ 
-                                minWidth: 40,
-                                color: alpha('#000', 0.5),
-                              }}>
-                                {result.type === 'folder' ? (
-                                  <FolderIcon sx={{ fontSize: 20 }} />
-                                ) : (
-                                  <InsertDriveFileIcon sx={{ fontSize: 20 }} />
-                                )}
-                              </ListItemIcon>
-                              <ListItemText 
-                                primary={result.name}
-                                secondary={getPathToNode(result, transformToTree(userData)).join(' > ')}
+                              <Box
                                 sx={{
-                                  '& .MuiTypography-root': {
-                                    color: alpha('#000', 0.7),
-                                    fontSize: '1rem',
-                                    fontWeight: result.type === 'folder' ? 500 : 400,
-                                  },
-                                  '& .MuiTypography-body2': {
-                                    color: alpha('#000', 0.5),
-                                    fontSize: '0.75rem',
-                                  }
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: '10px',
+                                  backgroundColor: result.type === 'folder' 
+                                    ? alpha('#9C27B0', 0.1)
+                                    : alpha('#2196F3', 0.1),
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: result.type === 'folder' 
+                                    ? '#9C27B0'
+                                    : '#2196F3',
+                                  mr: 2,
+                                  flexShrink: 0
                                 }}
-                              />
+                              >
+                                {result.type === 'folder' ? (
+                                  <FolderIcon sx={{ fontSize: 24 }} />
+                                ) : (
+                                  <InsertDriveFileIcon sx={{ fontSize: 24 }} />
+                                )}
+                              </Box>
+                              <Box sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '0.875rem',
+                                      fontWeight: 600,
+                                      color: alpha('#000', 0.87)
+                                    }}
+                                  >
+                                    {result.name}
+                                  </Typography>
+                                  {result.dataOwner && (
+                                    <Chip
+                                      label={`Owner: ${result.dataOwner}`}
+                                      size="small"
+                                      sx={{
+                                        height: 20,
+                                        fontSize: '0.625rem',
+                                        fontWeight: 500,
+                                        backgroundColor: alpha('#9C27B0', 0.1),
+                                        color: '#9C27B0',
+                                      }}
+                                    />
+                                  )}
+                                  {result.dataSource && (
+                                    <Chip
+                                      label={`Source: ${result.dataSource}`}
+                                      size="small"
+                                      sx={{
+                                        height: 20,
+                                        fontSize: '0.625rem',
+                                        fontWeight: 500,
+                                        backgroundColor: alpha('#2196F3', 0.1),
+                                        color: '#2196F3',
+                                      }}
+                                    />
+                                  )}
+                                  {result.latency && (
+                                    <Chip
+                                      label={`Latency: ${result.latency}`}
+                                      size="small"
+                                      sx={{
+                                        height: 20,
+                                        fontSize: '0.625rem',
+                                        fontWeight: 500,
+                                        backgroundColor: alpha('#4CAF50', 0.1),
+                                        color: '#4CAF50',
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '0.75rem',
+                                      color: alpha('#000', 0.5),
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 0.5
+                                    }}
+                                  >
+                                    <FolderOpenIcon sx={{ fontSize: 16 }} />
+                                    {transformedData ? getPathToNode(result, transformToTree(transformedData)).join(' > ') : ''}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  color: alpha('#000', 0.3),
+                                  ml: 2,
+                                  '& svg': { fontSize: 20 }
+                                }}
+                              >
+                                <KeyboardArrowRightIcon />
+                              </Box>
                             </ListItem>
                           ))}
                       </List>
@@ -1384,20 +1401,27 @@ const HomePage: React.FC = () => {
       </style>
 
       {/* Welcome Message */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ 
+        mb: { xs: 6, sm: 8 },
+        mt: { xs: 3, sm: 4 }
+      }}>
         <Typography variant="h4" sx={{ 
-          fontWeight: 600, 
-          mb: 1,
-          background: 'linear-gradient(45deg, #673AB7 30%, #3F51B5 90%)',
+          fontWeight: 700, 
+          mb: 2,
+          fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' },
+          background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
+          letterSpacing: '-0.02em',
         }}>
           {getGreeting()}, Sachet
         </Typography>
         <Typography sx={{ 
-          fontSize: '14px',
-          color: 'rgba(0, 0, 0, 0.6)',
-          letterSpacing: '0.01em'
+          fontSize: '1rem',
+          color: alpha('#000', 0.7),
+          letterSpacing: '0.01em',
+          lineHeight: 1.5,
+          maxWidth: '600px'
         }}>
           Welcome to your Xperience Intelligence Studio
         </Typography>
@@ -1405,7 +1429,7 @@ const HomePage: React.FC = () => {
 
       {/* Search Bar */}
       <TextField
-        placeholder="Search..."
+        placeholder="Search features, tools, or data..."
         value={searchQuery}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
         onClick={() => setIsSearchExpanded(true)}
@@ -1414,27 +1438,31 @@ const HomePage: React.FC = () => {
           width: '100%',
           maxWidth: '1400px',
           alignSelf: 'center',
-          mb: 3,
+          mb: { xs: 4, sm: 5 },
           '& .MuiOutlinedInput-root': {
-            height: '56px',
-            borderRadius: '16px',
+            height: { xs: '56px', sm: '64px' },
+            borderRadius: '20px',
             backgroundColor: alpha('#fff', 0.9),
             backdropFilter: 'blur(8px)',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: `0 4px 20px ${alpha('#000', 0.04)}`,
             '& fieldset': {
-              borderColor: alpha(theme.palette.primary.main, 0.2),
+              borderColor: alpha(theme.palette.primary.main, 0.15),
               borderWidth: '2px',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             },
             '&:hover': {
               transform: 'translateY(-2px)',
               backgroundColor: alpha('#fff', 1),
+              boxShadow: `0 8px 30px ${alpha('#000', 0.08)}`,
               '& fieldset': {
-                borderColor: alpha(theme.palette.primary.main, 0.4),
+                borderColor: alpha(theme.palette.primary.main, 0.3),
               }
             },
             '&.Mui-focused': {
               transform: 'translateY(-2px)',
               backgroundColor: '#fff',
+              boxShadow: `0 8px 30px ${alpha('#000', 0.1)}`,
               '& fieldset': {
                 borderColor: theme.palette.primary.main,
                 borderWidth: '2px',
@@ -1442,7 +1470,7 @@ const HomePage: React.FC = () => {
             }
           },
           '& .MuiInputBase-input': {
-            fontSize: '16px',
+            fontSize: { xs: '0.9rem', sm: '1rem' },
             fontWeight: 500,
             color: alpha('#000', 0.87),
             '&::placeholder': {
@@ -1457,7 +1485,8 @@ const HomePage: React.FC = () => {
               <SearchIcon sx={{ 
                 fontSize: 24, 
                 color: alpha('#000', 0.4),
-                ml: 1
+                ml: 1.5,
+                transition: 'color 0.2s ease',
               }} />
             </InputAdornment>
           ),
@@ -1466,11 +1495,16 @@ const HomePage: React.FC = () => {
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center',
-                mr: 1,
-                color: alpha('#000', 0.4),
+                mr: 2,
+                px: 1,
+                py: 0.5,
+                borderRadius: '6px',
+                backgroundColor: alpha('#000', 0.04),
+                color: alpha('#000', 0.6),
                 fontSize: '12px',
-                fontWeight: 500,
-                letterSpacing: '0.02em'
+                fontWeight: 600,
+                letterSpacing: '0.02em',
+                fontFamily: 'monospace'
               }}>
                 ⌘K
               </Box>
@@ -1479,83 +1513,95 @@ const HomePage: React.FC = () => {
         }}
       />
 
-      {/* Tools Grid */}
-      <Grid container spacing={2}>
+      {/* Tools Section */}
+      <Box 
+        sx={{ 
+          display: 'flex',
+          flexWrap: 'nowrap',
+          gap: { xs: '16px', sm: '24px' },
+          justifyContent: 'center',
+          mb: { xs: 4, sm: 5 },
+          width: '100%',
+          overflowX: { xs: 'auto', md: 'visible' },
+          pb: { xs: 2, md: 0 },
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          },
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
         {tools.map((tool) => (
-          <Grid item xs={6} sm={4} md={3} lg={12/7} key={tool.id}>
+          <Box
+            key={tool.id}
+            onClick={() => handleSearchResultClick(tool)}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease-out',
+              flex: { xs: '0 0 auto', md: '1 1 0' },
+              minWidth: { xs: '80px', sm: '100px' },
+              p: 2,
+              borderRadius: '12px',
+              '&:hover': {
+                backgroundColor: alpha(tool.color, 0.04),
+                '& .tool-icon': {
+                  backgroundColor: alpha(tool.color, 0.12),
+                  color: tool.color,
+                },
+                '& .tool-name': {
+                  color: tool.color,
+                }
+              }
+            }}
+          >
             <Box
-              onClick={() => handleSearchResultClick(tool)}
+              className="tool-icon"
               sx={{
-                p: { xs: 2, sm: 2.5 },
-                height: { xs: '100px', sm: '120px' },
+                width: { xs: '52px', sm: '56px' },
+                height: { xs: '52px', sm: '56px' },
+                borderRadius: '12px',
+                backgroundColor: alpha(tool.color, 0.08),
+                color: alpha(tool.color, 0.8),
+                transition: 'all 0.2s ease-out',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: { xs: 1, sm: 1.5 },
-                cursor: 'pointer',
-                borderRadius: '16px',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  '& .tool-icon': {
-                    transform: 'scale(1.1) translateY(-2px)',
-                    color: tool.color,
-                  },
-                  '& .tool-name': {
-                    color: tool.color,
-                  }
-                },
-                '&:active': {
-                  transform: 'translateY(-2px)',
+                '& svg': {
+                  fontSize: { xs: '24px', sm: '26px' },
                 }
               }}
             >
-              <Box
-                className="tool-icon"
-                sx={{
-                  width: { xs: '32px', sm: '40px' },
-                  height: { xs: '32px', sm: '40px' },
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '12px',
-                  color: alpha(tool.color, 0.8),
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '& svg': {
-                    fontSize: { xs: '24px', sm: '28px' }
-                  }
-                }}
-              >
-                {tool.icon}
-              </Box>
-              <Typography
-                className="tool-name"
-                sx={{
-                  fontSize: { xs: '13px', sm: '14px' },
-                  fontWeight: 500,
-                  color: 'rgba(0, 0, 0, 0.87)',
-                  textAlign: 'center',
-                  lineHeight: 1.3,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  maxWidth: '90%',
-                }}
-              >
-                {tool.name}
-              </Typography>
+              {tool.icon}
             </Box>
-          </Grid>
+            <Typography
+              className="tool-name"
+              sx={{
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: alpha('#000', 0.75),
+                textAlign: 'center',
+                transition: 'color 0.2s ease-out',
+                lineHeight: 1.2,
+                maxWidth: '100px',
+              }}
+            >
+              {tool.name}
+            </Typography>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {/* Update Pills */}
       <Box sx={{ 
         display: 'flex',
-        gap: 1,
+        gap: { xs: 1.5, sm: 2 },
         flexWrap: 'wrap',
         mt: { xs: 2, sm: 3 },
+        mb: { xs: 3, sm: 4 },
         justifyContent: 'center'
       }}>
         {updatePills.map((pill) => (
@@ -1564,23 +1610,23 @@ const HomePage: React.FC = () => {
             elevation={0}
             onClick={() => setActiveUpdateSection(pill.id)}
             sx={{
-              px: { xs: 2, sm: 2.5 },
-              height: { xs: '32px', sm: '36px' },
+              px: { xs: 2.5, sm: 3 },
+              height: { xs: '36px', sm: '40px' },
               display: 'flex',
               alignItems: 'center',
-              gap: 1,
+              gap: 1.5,
               cursor: 'pointer',
-              borderRadius: '18px',
-              border: '1px solid',
-              borderColor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.2) : alpha('#000', 0.08),
-              bgcolor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.05) : alpha('#fff', 0.8),
+              borderRadius: '20px',
+              border: '2px solid',
+              borderColor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.3) : alpha('#000', 0.08),
+              bgcolor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.08) : alpha('#fff', 0.8),
               backdropFilter: 'blur(8px)',
-              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
                 transform: 'translateY(-2px)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-                borderColor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.3) : alpha('#000', 0.12),
-                bgcolor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.08) : alpha('#000', 0.04),
+                boxShadow: `0 8px 24px ${alpha('#000', 0.08)}`,
+                borderColor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.4) : alpha('#000', 0.12),
+                bgcolor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.12) : alpha('#fff', 0.95),
               }
             }}
           >
@@ -1590,8 +1636,9 @@ const HomePage: React.FC = () => {
                 alignItems: 'center',
                 color: pill.id === activeUpdateSection ? '#0066cc' : alpha('#000', 0.6),
                 '& svg': {
-                  fontSize: { xs: '16px', sm: '18px' },
-                  transition: 'transform 0.2s ease',
+                  fontSize: { xs: '18px', sm: '20px' },
+                  transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transform: pill.id === activeUpdateSection ? 'scale(1.2)' : 'scale(1)',
                 }
               }}
             >
@@ -1600,10 +1647,11 @@ const HomePage: React.FC = () => {
             <Typography
               sx={{
                 fontSize: { xs: '13px', sm: '14px' },
-                fontWeight: 500,
-                color: pill.id === activeUpdateSection ? '#0066cc' : alpha('#000', 0.87),
+                fontWeight: 600,
+                color: pill.id === activeUpdateSection ? '#0066cc' : alpha('#000', 0.75),
                 lineHeight: 1,
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                letterSpacing: '0.01em'
               }}
             >
               {pill.label}
@@ -1613,15 +1661,17 @@ const HomePage: React.FC = () => {
                 label={pill.count}
                 size="small"
                 sx={{
-                  height: '18px',
-                  minWidth: '18px',
-                  fontSize: '10px',
-                  fontWeight: 600,
+                  height: '20px',
+                  minWidth: '20px',
+                  fontSize: '11px',
+                  fontWeight: 700,
                   ml: 0.5,
-                  bgcolor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.1) : alpha('#000', 0.06),
+                  bgcolor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.15) : alpha('#000', 0.06),
                   color: pill.id === activeUpdateSection ? '#0066cc' : alpha('#000', 0.7),
+                  border: '1px solid',
+                  borderColor: pill.id === activeUpdateSection ? alpha('#0066cc', 0.3) : 'transparent',
                   '& .MuiChip-label': {
-                    px: 0.5,
+                    px: 0.75,
                   }
                 }}
               />

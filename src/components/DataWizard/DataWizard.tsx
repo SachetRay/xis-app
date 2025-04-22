@@ -35,6 +35,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { userData } from '../../data/userData';
+import { transformUserData } from '../../utils/userDataTransformer';
+import { transformToTree, type TreeNode, searchInTree, getPathToNode } from '../../utils/treeTransform';
 import { 
   LineChart, 
   Line, 
@@ -45,13 +47,6 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
-
-interface TreeNode {
-  name: string;
-  type: 'folder' | 'file';
-  value?: any;
-  children?: TreeNode[];
-}
 
 interface ColumnData {
   items: TreeNode[];
@@ -125,22 +120,6 @@ const intermediateTables = [
   { name: 'Final_User_Attributes', description: 'Final user attributes used in applications', rowCount: 750000 },
 ];
 
-// Simple and efficient tree transformation
-const transformToTree = (obj: any): TreeNode[] => {
-  if (!obj || typeof obj !== 'object') return [];
-
-  return Object.entries(obj).map(([key, value]) => {
-    // Treat arrays the same as objects - they will be displayed as folders
-    const isLeaf = typeof value !== 'object' || value === null;
-    return {
-      name: key,
-      type: isLeaf ? 'file' : 'folder',
-      value: isLeaf ? value : undefined,
-      children: !isLeaf ? transformToTree(value) : undefined
-    };
-  });
-};
-
 const DataWizard: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,7 +127,7 @@ const DataWizard: React.FC = () => {
   const [searchResults, setSearchResults] = useState<TreeNode[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [columns, setColumns] = useState<ColumnData[]>([
-    { items: transformToTree(userData), selectedItem: null }
+    { items: transformToTree(transformUserData(userData)), selectedItem: null }
   ]);
   const [selectedDetails, setSelectedDetails] = useState<SelectedDetails | null>(null);
   const [animatingColumns, setAnimatingColumns] = useState<number[]>([]);
@@ -166,7 +145,8 @@ const DataWizard: React.FC = () => {
     const expand = searchParams.get('expand') === 'true';
 
     if (path || selected) {
-      const treeData = transformToTree(userData);
+      const transformedData = transformUserData(userData);
+      const treeData = transformToTree(transformedData);
       const pathArray = path ? path.split('/') : [];
       
       // Reset columns and build the path
@@ -245,7 +225,8 @@ const DataWizard: React.FC = () => {
   // Add search functionality
   useEffect(() => {
     if (searchQuery.trim()) {
-      const results = searchInTree(transformToTree(userData), searchQuery.toLowerCase());
+      const transformedData = transformUserData(userData);
+      const results = searchInTree(transformToTree(transformedData), searchQuery.toLowerCase());
       setSearchResults(results);
     } else {
       setSearchResults([]);
@@ -321,11 +302,12 @@ const DataWizard: React.FC = () => {
 
   // Function to navigate to a search result
   const navigateToSearchResult = (result: TreeNode) => {
-    const path = getPathToNode(result, transformToTree(userData));
+    const transformedData = transformUserData(userData);
+    const path = getPathToNode(result, transformToTree(transformedData));
     
     // Reset columns and build the path
     const newColumns: ColumnData[] = [];
-    let currentItems = transformToTree(userData);
+    let currentItems = transformToTree(transformedData);
     
     for (const pathItem of path) {
       const columnItem = currentItems.find(item => item.name === pathItem);
@@ -1099,21 +1081,72 @@ const DataWizard: React.FC = () => {
                           <InsertDriveFileIcon sx={{ fontSize: 20 }} />
                         )}
                       </ListItemIcon>
-                      <ListItemText 
-                        primary={result.name}
-                        secondary={getPathToNode(result, transformToTree(userData)).join(' > ')}
-                        sx={{
-                          '& .MuiTypography-root': {
-                            color: alpha('#000', 0.7),
-                            fontSize: '0.875rem',
-                            fontWeight: result.type === 'folder' ? 500 : 400,
-                          },
-                          '& .MuiTypography-body2': {
-                            color: alpha('#000', 0.5),
-                            fontSize: '0.75rem',
-                          }
-                        }}
-                      />
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <Typography
+                            sx={{
+                              fontSize: '0.875rem',
+                              fontWeight: 600,
+                              color: alpha('#000', 0.87)
+                            }}
+                          >
+                            {result.name}
+                          </Typography>
+                          {result.dataOwner && (
+                            <Chip
+                              label={`Owner: ${result.dataOwner}`}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: '0.625rem',
+                                fontWeight: 500,
+                                backgroundColor: alpha('#9C27B0', 0.1),
+                                color: '#9C27B0',
+                              }}
+                            />
+                          )}
+                          {result.dataSource && (
+                            <Chip
+                              label={`Source: ${result.dataSource}`}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: '0.625rem',
+                                fontWeight: 500,
+                                backgroundColor: alpha('#2196F3', 0.1),
+                                color: '#2196F3',
+                              }}
+                            />
+                          )}
+                          {result.latency && (
+                            <Chip
+                              label={`Latency: ${result.latency}`}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: '0.625rem',
+                                fontWeight: 500,
+                                backgroundColor: alpha('#4CAF50', 0.1),
+                                color: '#4CAF50',
+                              }}
+                            />
+                          )}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography
+                            sx={{
+                              fontSize: '0.75rem',
+                              color: alpha('#000', 0.5),
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5
+                            }}
+                          >
+                            <FolderOpenIcon sx={{ fontSize: 16 }} />
+                            {getPathToNode(result, transformToTree(transformUserData(userData))).join(' > ')}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </ListItem>
                   ))}
                 </List>

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAttributeTree, getAttributes, getAttributeValues, getXDMDetails, getAttributeDatasets, getAttributeLineage, getLineageSteps, getLineageSystems } from '../db/queries.mjs';
+import { getAttributeTree, getAttributes, getAttributeValues, getXDMDetails, getAttributeDatasets, getAttributeLineage, getLineageSteps, getLineageSystems } from '../db/queries.js';
 
 const router = express.Router();
 
