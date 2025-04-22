@@ -24,12 +24,11 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "server": "NODE_OPTIONS=\"--loader ts-node/esm\" node --experimental-specifier-resolution=node server/src/index.ts",
-    "dev": "concurrently \"npm run start\" \"npm run server\"",
-    "deploy-demo": "./deploy-demo.sh",
-    "predeploy": "npm run build && node fix-paths.js",
-    "deploy": "gh-pages -d build",
-    "transform-data": "ts-node --esm --project tsconfig.json src/scripts/transformData.ts"
+    "server": "ts-node-dev --respawn --transpile-only server/src/index.ts",
+    "dev": "npm run start",
+    "dev:full": "concurrently \"npm run start\" \"npm run server\"",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

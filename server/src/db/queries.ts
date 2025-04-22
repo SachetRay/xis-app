@@ -1,5 +1,5 @@
-import pool from '../config/db.js';
-import { Attribute, AttributeValue, XDMDetail, AttributeDataset, AttributeLineage, LineageStep, LineageSystem, TreeNode } from '../types/index.js';
+import pool from '../config/db';
+import { Attribute, AttributeValue, XDMDetail, AttributeDataset, AttributeLineage, LineageStep, LineageSystem, TreeNode } from '../types/index';
 
 export const getAttributes = async (): Promise<Attribute[]> => {
   const result = await pool.query('SELECT * FROM attributes ORDER BY attribute_name');
