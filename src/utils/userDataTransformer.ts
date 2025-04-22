@@ -39,7 +39,6 @@ export function transformUserData(userData: UserData): TransformedUserData {
       status: {
         ccFunnelState: memberAccountGUID.userDetails.ccFunnelState,
         dcFunnelState: memberAccountGUID.userDetails.dcFunnelState,
-        customerState: 'ActiveTrialUser', // This should be derived from actual data
         applicationDetails: {
           customerState: memberAccountGUID.userDetails.applicationDetails?.PHOTOSHOP?.customerState || 'Unknown'
         }

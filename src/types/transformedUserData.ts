@@ -45,7 +45,6 @@ interface LanguagePreferences {
 interface Status {
   ccFunnelState: string;
   dcFunnelState: string;
-  customerState: string;
   applicationDetails: {
     customerState: string;
   };
