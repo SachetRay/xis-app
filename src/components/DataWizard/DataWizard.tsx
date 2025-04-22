@@ -64,6 +64,7 @@ interface SelectedDetails {
   usageCount?: number;
   status?: string;
   dataType?: string;
+  xdmPath?: string;
 }
 
 interface FolderTypeDetails {
@@ -356,6 +357,73 @@ const DataWizard: React.FC = () => {
       owner: ['Priya Shanmugan', 'John Smith', 'Sarah Chen', 'Mike Johnson'][Math.floor(Math.random() * 4)]
     };
 
+    // Get the original path for XDM
+    const getOriginalPath = (transformedPath: string[]): string => {
+      const pathMappings: Record<string, string> = {
+        // User Details - Identity
+        'userDetails/identity/firstName': 'person/name/firstname',
+        'userDetails/identity/lastName': 'person/name/lastname',
+        'userDetails/identity/countryCode': 'homeAddress/countryCode',
+        'userDetails/identity/userAccountCreationDate': 'adobeCorpnew/memberAccountGUID/userDetails/userAccountCreationDate',
+        'userDetails/identity/isAdobeEmployee': 'adobeCorpnew/isAdobeEmployee',
+        
+        // User Details - Email
+        'userDetails/email/address': 'personalEmail/address',
+        'userDetails/email/emailDomain': 'adobeCorpnew/emailDomain',
+        'userDetails/email/hashedEmail': 'adobeCorpnew/hashedEmail',
+        'userDetails/email/emailValidFlag': 'adobeCorpnew/emailValidFlag',
+        
+        // Email Marketing Permission
+        'emailMarketingPermission': 'personalEmail/optInOut',
+        'Email Marketing Permission': 'personalEmail/optInOut',
+        'emailMarketingPermission/val': 'personalEmail/optInOut/val',
+        'emailMarketingPermission/time': 'personalEmail/optInOut/time',
+        
+        // Individual Entitlements
+        'individualEntitlements': 'adobeCorpnew/entitlements',
+        'Individual Entitlements': 'adobeCorpnew/entitlements',
+        'individualEntitlements/numberOfEntitledProducts': 'adobeCorpnew/entitlements/numberOfEntitledProducts',
+        
+        // Team Entitlements
+        'teamEntitlements': 'adobeCorpnew/memberAccountGUID/contract',
+        'Team Entitlements': 'adobeCorpnew/memberAccountGUID/contract',
+        
+        // Models and Scores
+        'modelsAndScores/overallScore': 'adobeCorpnew/memberAccountGUID/modelsAndScores/SKU_RANK',
+        'Models and Scores/Overall Score': 'adobeCorpnew/memberAccountGUID/modelsAndScores/SKU_RANK',
+        
+        // Product Activity
+        'productActivity': 'adobeCorpnew/memberAccountGUID/productActivity',
+        'Product Activity': 'adobeCorpnew/memberAccountGUID/productActivity'
+      };
+
+      const transformedPathStr = transformedPath.join('/');
+      
+      // Try exact match first
+      if (pathMappings[transformedPathStr]) {
+        return pathMappings[transformedPathStr];
+      }
+
+      // Find all parent paths that match
+      const matchingPaths = Object.entries(pathMappings)
+        .filter(([key]) => transformedPathStr.startsWith(key))
+        .sort((a, b) => b[0].length - a[0].length); // Sort by length descending
+
+      if (matchingPaths.length > 0) {
+        // Use the longest matching path
+        const [matchingPath, originalPathPrefix] = matchingPaths[0];
+        // Get the remaining path segments
+        const remainingPath = transformedPathStr.slice(matchingPath.length);
+        // If there's a remaining path, append it to the original path
+        return remainingPath ? 
+          `${originalPathPrefix}${remainingPath}` : 
+          originalPathPrefix;
+      }
+
+      // If no mapping found, return the path as is
+      return transformedPathStr;
+    };
+
     if (item.type === 'folder') {
       const folderTypes: FolderTypes = {
         'Anonymous User': {
@@ -388,41 +456,16 @@ const DataWizard: React.FC = () => {
           status: Math.random() > 0.1 ? 'Active' : 'Deprecated'
         })
       };
-    } else {
-      const fileTypes: FileTypes = {
-        'BriteVerify Email Invalid': {
-          description: 'Indicates if an email address has been marked as invalid by BriteVerify.',
-          dataType: 'Boolean',
-          status: 'Active',
-        },
-        'Email Domain': {
-          description: 'The domain portion of the user\'s email address.',
-          dataType: 'String',
-          status: 'Active',
-        },
-        'Email Security Token': {
-          description: 'Security token associated with email verification process.',
-          dataType: 'String',
-          status: 'Active',
-        },
-        'Decile 1 Month': {
-          description: 'Monthly decile calculation for user segmentation.',
-          dataType: 'Number',
-          status: 'Active',
-        }
-      };
-
-      return {
-        ...baseDetails,
-        ...(fileTypes[item.name] || {
-          description: 'A structured identifier used for data organization and management.',
-          dataType: typeof item.value === 'string' ? 'String' :
-                   typeof item.value === 'number' ? 'Number' :
-                   typeof item.value === 'boolean' ? 'Boolean' : 'Object',
-          status: Math.random() > 0.1 ? 'Active' : 'Deprecated'
-        })
-      };
     }
+
+    // For files (attributes), include XDM path
+    return {
+      ...baseDetails,
+      description: getAttributeDescription(item.name),
+      status: Math.random() > 0.1 ? 'Active' : 'Deprecated',
+      dataType: typeof item.value,
+      xdmPath: `xdm:${getOriginalPath(path)}`
+    };
   };
 
   const handleItemClick = (item: TreeNode, columnIndex: number) => {
@@ -733,6 +776,33 @@ const DataWizard: React.FC = () => {
             </Typography>
           </Box>
 
+          {/* Add XDM Path for attributes (files) */}
+          {selectedDetails.type === 'file' && selectedDetails.xdmPath && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
+                fontSize: '0.75rem', 
+                fontWeight: 600, 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.5px',
+                color: alpha('#000', 0.5)
+              }}>
+                XDM Path
+              </Typography>
+              <Typography variant="body2" sx={{ 
+                wordBreak: 'break-all',
+                backgroundColor: alpha('#f5f5f5', 0.5),
+                p: 1.5,
+                borderRadius: '8px',
+                fontSize: '0.75rem',
+                fontFamily: 'monospace',
+                color: alpha('#000', 0.7),
+                lineHeight: 1.5
+              }}>
+                {selectedDetails.xdmPath}
+              </Typography>
+            </Box>
+          )}
+
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
               fontSize: '0.75rem', 
@@ -906,6 +976,81 @@ const DataWizard: React.FC = () => {
         </Box>
       </Paper>
     );
+  };
+
+  // Function to get description for an attribute
+  const getAttributeDescription = (attributeName: string): string => {
+    const descriptions: Record<string, string> = {
+      // User Details - Identity
+      'firstName': 'The user\'s first name from their profile.',
+      'lastName': 'The user\'s last name from their profile.',
+      'countryCode': 'The country code associated with the user\'s address.',
+      'userAccountCreationDate': 'The date when the user\'s account was created.',
+      'isAdobeEmployee': 'Indicates whether the user is an Adobe employee.',
+      
+      // User Details - Email
+      'address': 'The user\'s email address.',
+      'emailDomain': 'The domain portion of the user\'s email address.',
+      'hashedEmail': 'Hashed version of the user\'s email for security.',
+      'emailValidFlag': 'Indicates if the email has been validated.',
+      
+      // Email Marketing Permission
+      'emailMarketingPermission': 'User\'s consent status for email marketing.',
+      'val': 'The actual permission value for email marketing.',
+      'time': 'Timestamp of when the permission was last updated.',
+      
+      // Individual Entitlements
+      'numberOfEntitledProducts': 'Total number of products the user is entitled to.',
+      'productInfo': 'Detailed information about entitled products.',
+      'productCode': 'Unique code identifying the product.',
+      'productName': 'Name of the entitled product.',
+      'productID': 'Unique identifier for the product.',
+      'family': 'Product family grouping.',
+      'bundleID': 'Identifier for the product bundle.',
+      
+      // Team Entitlements
+      'contractInfo': 'Information about the team\'s contract.',
+      'buyingProgram': 'The program through which the contract was purchased.',
+      'contractStartDTS': 'Contract start date.',
+      'contractEndDTS': 'Contract end date.',
+      'contractStatus': 'Current status of the contract.',
+      'contractType': 'Type of contract.',
+      'adminRoles': 'Administrative roles assigned in the contract.',
+      
+      // Models and Scores
+      'overallScore': 'Aggregate score based on user behavior and attributes.',
+      'modelScore': 'Raw score from the predictive model.',
+      'modelPercentileScore': 'Percentile rank of the model score.',
+      'modelScoreDate': 'Date when the score was last calculated.',
+      'modelUserSegment': 'User segment based on the model score.',
+      
+      // Product Activity
+      'installs': 'Product installation events.',
+      'launches': 'Product launch events.',
+      'desktop': 'Activity on desktop platforms.',
+      'mobile': 'Activity on mobile platforms.',
+      'web': 'Activity on web platforms.'
+    };
+
+    // Convert the attribute name to lowercase and remove spaces for matching
+    const normalizedName = attributeName.toLowerCase().replace(/\s+/g, '');
+    
+    // Try to find a direct match first
+    if (descriptions[attributeName]) {
+      return descriptions[attributeName];
+    }
+    
+    // Try to find a match with the normalized name
+    const matchingKey = Object.keys(descriptions).find(key => 
+      key.toLowerCase().replace(/\s+/g, '') === normalizedName
+    );
+    
+    if (matchingKey) {
+      return descriptions[matchingKey];
+    }
+    
+    // Default description if no match is found
+    return 'A structured attribute used for data organization and management.';
   };
 
   return (

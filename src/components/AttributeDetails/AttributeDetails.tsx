@@ -53,7 +53,8 @@ import {
   TableRow,
   TableCell,
 } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import HistoryIcon from '@mui/icons-material/History';
@@ -87,15 +88,7 @@ import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import MergeIcon from '@mui/icons-material/Merge';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { userData } from '../../data/userData';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer
-} from 'recharts';
+import { transformUserData } from '../../utils/userDataTransformer';
 
 interface AttributeDetailsProps {
   attributePath?: string;
@@ -107,36 +100,37 @@ interface TabPanelProps {
   value: number;
 }
 
+interface Dataset {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 interface AttributeMetadata {
   name: string;
-  path: string[];
+  path: string;
   value: any;
-  dataType: string;
-  xdmPath: string;
   description: string;
-  status: string;
   owner: string;
-  lastModified: string;
-  privacyLevel: string;
-  retentionPeriod: string;
-  usageCount?: number;
-  tags?: string[];
-  // New fields
-  dataClassification: string;
-  displayName: string;
-  definition: string;
-  sampleValues: any[];
-  allPossibleValues: any[];
-  xdmSchema: string;
-  xdmFieldGroup: string;
-  xdmDataType: string;
-  latency: string;
-  identity: string;
-  historicalDataEnabled: boolean;
   dataSteward: string;
-  dataSource: string;
-  aepDatasets: string[];
-  sampleSnapshotQuery: string;
+  dataType: string;
+  sampleValues: any[];
+  aepDatasets?: Dataset[];
+  sampleSnapshotQuery?: string;
+  tags?: string[];
+  latency?: string;
+  displayName?: string;
+  xdmSchema?: string;
+  xdmFieldGroup?: string;
+  xdmPath?: string;
+  definition?: string;
+  status?: string;
+  usageCount?: number;
+  lastModified?: string;
+  dataClassification?: string;
+  identity?: boolean;
+  dataSource?: string;
+  historicalDataEnabled?: boolean;
 }
 
 interface IntermediateTable {
@@ -198,50 +192,6 @@ const MetadataItem: React.FC<MetadataItemProps> = ({ icon, label, value }) => {
 
 // Add new layout type
 type LayoutType = 'minimal' | 'split-panel' | 'cards' | 'dashboard' | 'focus' | 'compact';
-
-interface UsageChartProps {
-  data: Array<{ date: string; count: number }>;
-  height?: number | string;
-}
-
-const UsageChart: React.FC<UsageChartProps> = ({ data, height = 300 }) => (
-  <Box sx={{ height }}>
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke={alpha('#000', 0.1)} />
-        <XAxis 
-          dataKey="date" 
-          tick={{ fontSize: 12 }}
-          tickLine={false}
-          axisLine={{ stroke: alpha('#000', 0.2) }}
-        />
-        <YAxis 
-          tick={{ fontSize: 12 }}
-          tickLine={false}
-          axisLine={{ stroke: alpha('#000', 0.2) }}
-        />
-        <RechartsTooltip 
-          contentStyle={{ 
-            backgroundColor: 'white', 
-            borderRadius: '4px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}
-        />
-        <Line 
-          type="monotone" 
-          dataKey="count" 
-          stroke="#0066cc" 
-          strokeWidth={2}
-          dot={{ fill: '#0066cc', strokeWidth: 2 }}
-          activeDot={{ r: 6, fill: '#0066cc' }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </Box>
-);
 
 // Add new interfaces for lineage visualization
 interface LineageNode {
@@ -492,9 +442,9 @@ interface EditDialogProps {
 const EditDialog: React.FC<EditDialogProps> = ({ open, onClose, onSave, initialData }) => {
   const theme = useTheme();
   const [formData, setFormData] = useState<Partial<AttributeMetadata>>({
-    description: initialData.description || 'This attribute represents the user\'s profile information including personal details and preferences.',
-    latency: initialData.latency || '100ms',
-    tags: initialData.tags || ['user-profile', 'personal-data', 'preferences']
+    description: initialData?.description || '',
+    latency: initialData?.latency || '',
+    tags: initialData?.tags || []
   });
   const [tagInput, setTagInput] = useState('');
 
@@ -648,225 +598,291 @@ const EditDialog: React.FC<EditDialogProps> = ({ open, onClose, onSave, initialD
   );
 };
 
-const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
-  const [tabValue, setTabValue] = useState<number>(0);
-  const [attributeData, setAttributeData] = useState<AttributeMetadata | null>(null);
-  const [loading, setLoading] = useState(true);
+const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath: propAttributePath }) => {
+  const [attributeDetails, setAttributeDetails] = useState<AttributeMetadata | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    metadata: true,
-    value: true,
-    related: true
-  });
+  const [loading, setLoading] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState<Partial<AttributeMetadata>>({});
-  const [valueType, setValueType] = useState<'sample' | 'all'>('sample');
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
-  
-  // Usage data
-  const [usageData] = useState(() => {
-    const data = [
-      { date: '2024-01', count: 1500 },
-      { date: '2024-02', count: 2200 },
-      { date: '2024-03', count: 1800 },
-      { date: '2024-04', count: 2400 },
-      { date: '2024-05', count: 3000 },
-      { date: '2024-06', count: 2800 },
-    ];
-    return data;
+  const [editFormData, setEditFormData] = useState<Partial<AttributeMetadata>>({
+    description: '',
+    latency: '',
+    tags: []
   });
-  
-  // Platform usage data
-  const [platformData] = useState([
-    { platform: 'Desktop', usage: 4500 },
-    { platform: 'Web', usage: 3200 },
-    { platform: 'Mobile', usage: 2300 },
-  ]);
-  
-  // OS usage data
-  const [osData] = useState([
-    { name: 'Mac', value: 4000 },
-    { name: 'Windows', value: 3500 },
-    { name: 'iOS', value: 1500 },
-    { name: 'Android', value: 1000 },
-  ]);
-  
-  // Colors for charts
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-  
-  // Related attributes data
-  const [relatedAttributes] = useState([
-    { name: 'user.email', usageCount: 12500, correlation: 85 },
-    { name: 'user.name', usageCount: 9800, correlation: 72 },
-    { name: 'user.country', usageCount: 7500, correlation: 65 },
-    { name: 'user.language', usageCount: 6200, correlation: 58 },
-  ]);
-  
-  // Campaign usage data
-  const [campaignUsage] = useState([
-    { name: 'Summer Promotion 2023', segmentCount: 8, status: 'Active' },
-    { name: 'Holiday Special 2023', segmentCount: 12, status: 'Active' },
-    { name: 'New Product Launch', segmentCount: 5, status: 'Scheduled' },
-    { name: 'Customer Retention', segmentCount: 7, status: 'Active' },
-  ]);
-  
-  // Handle time range change
-  const handleTimeRangeChange = (_: React.MouseEvent<HTMLElement>, newTimeRange: '7d' | '30d' | '90d' | null) => {
-    if (newTimeRange !== null) {
-      setTimeRange(newTimeRange);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const theme = useTheme();
+
+  // Get path from URL if not provided as prop
+  const attributePath = propAttributePath || decodeURIComponent(location.pathname.split('/attribute/')[1]);
+
+  const fetchAttributeDetails = () => {
+    if (!attributePath) {
+      console.error('No attribute path provided');
+      setError('No attribute path provided');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get the path from the URL and decode it
+      const fullPath = decodeURIComponent(attributePath);
+      console.log('Full decoded path:', fullPath);
+
+      // Remove any leading/trailing slashes and split
+      const pathSegments = fullPath.split('/').filter(Boolean);
+      console.log('Path segments:', pathSegments);
+
+      // Try to get data from transformed structure first
+      const transformedData = transformUserData(userData);
+      console.log('Transformed data:', transformedData);
+
+      let currentData: any;
+      let isTransformedPath = false;
+      let originalPath = '';
+
+      // First, try to find the path in transformed data
+      try {
+        currentData = transformedData;
+        let tempData: Record<string, any> = transformedData as Record<string, any>;
+        
+        for (const segment of pathSegments) {
+          // Try different variations of the segment name
+          const variations = [
+            segment,
+            segment.toLowerCase(),
+            // Convert space-separated to camelCase
+            segment.split(' ')
+              .map((word, index) => index === 0 
+                ? word.toLowerCase() 
+                : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              ).join('')
+          ];
+
+          const matchingKey = Object.keys(tempData).find(key => 
+            variations.includes(key) || variations.includes(key.toLowerCase())
+          );
+
+          if (!matchingKey || typeof tempData !== 'object') {
+            throw new Error('Path not found in transformed data');
+          }
+
+          tempData = tempData[matchingKey];
+        }
+        
+        isTransformedPath = true;
+        currentData = tempData;
+        console.log('Found path in transformed data');
+
+        // Complete mapping of transformed paths to original paths
+        const pathMappings: Record<string, string> = {
+          // User Details - Identity
+          'userDetails/identity/firstName': 'person/name/firstname',
+          'userDetails/identity/lastName': 'person/name/lastname',
+          'userDetails/identity/countryCode': 'homeAddress/countryCode',
+          'userDetails/identity/userAccountCreationDate': 'adobeCorpnew/memberAccountGUID/userDetails/userAccountCreationDate',
+          'userDetails/identity/isAdobeEmployee': 'adobeCorpnew/isAdobeEmployee',
+          
+          // User Details - Email
+          'userDetails/email/address': 'personalEmail/address',
+          'userDetails/email/emailDomain': 'adobeCorpnew/emailDomain',
+          'userDetails/email/hashedEmail': 'adobeCorpnew/hashedEmail',
+          'userDetails/email/emailValidFlag': 'adobeCorpnew/emailValidFlag',
+          
+          // User Details - Authentication
+          'userDetails/authentication/authenticationSource': 'adobeCorpnew/memberAccountGUID/userDetails/authenticationSource',
+          'userDetails/authentication/authenticationSourceType': 'adobeCorpnew/memberAccountGUID/userDetails/authenticationSourceType',
+          'userDetails/authentication/signupSourceName': 'adobeCorpnew/memberAccountGUID/userDetails/signupSourceName',
+          'userDetails/authentication/signupSocialAccount': 'adobeCorpnew/memberAccountGUID/userDetails/signupSocialAccount',
+          'userDetails/authentication/signupCategory': 'adobeCorpnew/memberAccountGUID/userDetails/signupCategory',
+          
+          // User Details - Account System Info
+          'userDetails/accountSystemInfo/type2eLinkedStatus': 'adobeCorpnew/memberAccountGUID/userDetails/type2eLinkedStatus',
+          'userDetails/accountSystemInfo/linkToType2e': 'adobeCorpnew/memberAccountGUID/userDetails/linkToType2e',
+          'userDetails/accountSystemInfo/type2eParentType': 'adobeCorpnew/memberAccountGUID/userDetails/type2eParentType',
+          
+          // User Details - Language Preferences
+          'userDetails/languagePreferences/firstPref': 'adobeCorpnew/memberAccountGUID/userDetails/firstPref',
+          'userDetails/languagePreferences/secondPref': 'adobeCorpnew/memberAccountGUID/userDetails/secondPref',
+          'userDetails/languagePreferences/thirdPref': 'adobeCorpnew/memberAccountGUID/userDetails/thirdPref',
+          
+          // User Details - Status
+          'userDetails/status/ccFunnelState': 'adobeCorpnew/memberAccountGUID/userDetails/ccFunnelState',
+          'userDetails/status/dcFunnelState': 'adobeCorpnew/memberAccountGUID/userDetails/dcFunnelState',
+          'userDetails/status/customerState': 'adobeCorpnew/memberAccountGUID/userDetails/applicationDetails/PHOTOSHOP/customerState',
+          'userDetails/status/applicationDetails/customerState': 'adobeCorpnew/memberAccountGUID/userDetails/applicationDetails/PHOTOSHOP/customerState',
+          
+          // Email Marketing Permission
+          'emailMarketingPermission': 'personalEmail/optInOut',
+          'Email Marketing Permission': 'personalEmail/optInOut',
+          'emailMarketingPermission/val': 'personalEmail/optInOut/val',
+          'emailMarketingPermission/time': 'personalEmail/optInOut/time',
+          
+          // Individual Entitlements
+          'individualEntitlements': 'adobeCorpnew/entitlements',
+          'Individual Entitlements': 'adobeCorpnew/entitlements',
+          'individualEntitlements/numberOfEntitledProducts': 'adobeCorpnew/entitlements/numberOfEntitledProducts',
+          'individualEntitlements/productInfo': 'adobeCorpnew/entitlements/productInfo',
+          'individualEntitlements/productInfo/productCode': 'adobeCorpnew/entitlements/productInfo/productCode',
+          'individualEntitlements/productInfo/productName': 'adobeCorpnew/entitlements/productInfo/productName',
+          'individualEntitlements/productInfo/productID': 'adobeCorpnew/entitlements/productInfo/productID',
+          'individualEntitlements/productInfo/family': 'adobeCorpnew/entitlements/productInfo/family',
+          'individualEntitlements/productInfo/bundleID': 'adobeCorpnew/entitlements/productInfo/bundleID',
+          'individualEntitlements/offerInfo': 'adobeCorpnew/entitlements/offerInfo',
+          'individualEntitlements/acquisitionInfo': 'adobeCorpnew/entitlements/acquisitionInfo',
+          'individualEntitlements/trialInfo': 'adobeCorpnew/entitlements/trialInfo',
+          'individualEntitlements/statusInfo': 'adobeCorpnew/entitlements/statusInfo',
+          
+          // Team Entitlements
+          'teamEntitlements': 'adobeCorpnew/memberAccountGUID/contract',
+          'Team Entitlements': 'adobeCorpnew/memberAccountGUID/contract',
+          'teamEntitlements/contractInfo': 'adobeCorpnew/memberAccountGUID/contract',
+          'teamEntitlements/contractInfo/buyingProgram': 'adobeCorpnew/memberAccountGUID/contract/buyingProgram',
+          'teamEntitlements/contractInfo/contractStartDTS': 'adobeCorpnew/memberAccountGUID/contract/contractStartDTS',
+          'teamEntitlements/contractInfo/contractEndDTS': 'adobeCorpnew/memberAccountGUID/contract/contractEndDTS',
+          'teamEntitlements/contractInfo/contractStatus': 'adobeCorpnew/memberAccountGUID/contract/contractStatus',
+          'teamEntitlements/contractInfo/contractType': 'adobeCorpnew/memberAccountGUID/contract/contractType',
+          'teamEntitlements/adminRoles': 'adobeCorpnew/memberAccountGUID/contract/adminRoles',
+          'teamEntitlements/b2bEntitlements': 'adobeCorpnew/memberAccountGUID/contract/b2bEntitlements',
+          
+          // Models and Scores
+          'modelsAndScores': 'adobeCorpnew/memberAccountGUID/modelsAndScores',
+          'Models and Scores': 'adobeCorpnew/memberAccountGUID/modelsAndScores',
+          'modelsAndScores/overallScore': 'adobeCorpnew/memberAccountGUID/modelsAndScores/SKU_RANK',
+          'modelsAndScores/overallScore/modelScore': 'adobeCorpnew/memberAccountGUID/modelsAndScores/SKU_RANK/modelScore',
+          'modelsAndScores/overallScore/modelPercentileScore': 'adobeCorpnew/memberAccountGUID/modelsAndScores/SKU_RANK/modelPercentileScore',
+          'modelsAndScores/overallScore/modelScoreDate': 'adobeCorpnew/memberAccountGUID/modelsAndScores/SKU_RANK/modelScoreDate',
+          'modelsAndScores/overallScore/modelUserSegment': 'adobeCorpnew/memberAccountGUID/modelsAndScores/SKU_RANK/modelUserSegment',
+          'modelsAndScores/actions': 'adobeCorpnew/memberAccountGUID/modelsAndScores/actions',
+          'modelsAndScores/contents': 'adobeCorpnew/memberAccountGUID/modelsAndScores/contents',
+          
+          // Product Activity
+          'productActivity': 'adobeCorpnew/memberAccountGUID/productActivity',
+          'Product Activity': 'adobeCorpnew/memberAccountGUID/productActivity',
+          'productActivity/installs': 'adobeCorpnew/memberAccountGUID/productActivity/installs',
+          'productActivity/launches': 'adobeCorpnew/memberAccountGUID/productActivity/launches',
+          'productActivity/installs/desktop': 'adobeCorpnew/memberAccountGUID/productActivity/installs/desktop',
+          'productActivity/installs/mobile': 'adobeCorpnew/memberAccountGUID/productActivity/installs/mobile',
+          'productActivity/installs/web': 'adobeCorpnew/memberAccountGUID/productActivity/installs/web',
+          'productActivity/launches/desktop': 'adobeCorpnew/memberAccountGUID/productActivity/launches/desktop',
+          'productActivity/launches/mobile': 'adobeCorpnew/memberAccountGUID/productActivity/launches/mobile'
+        };
+
+        // Function to find the most specific path mapping
+        const findOriginalPath = (transformedPath: string): string => {
+          // Try exact match first
+          if (pathMappings[transformedPath]) {
+            return pathMappings[transformedPath];
+          }
+
+          // Find all parent paths that match
+          const matchingPaths = Object.entries(pathMappings)
+            .filter(([key]) => transformedPath.startsWith(key))
+            .sort((a, b) => b[0].length - a[0].length); // Sort by length descending
+
+          if (matchingPaths.length > 0) {
+            // Use the longest matching path
+            const [matchingPath, originalPathPrefix] = matchingPaths[0];
+            // Get the remaining path segments
+            const remainingPath = transformedPath.slice(matchingPath.length);
+            // If there's a remaining path, append it to the original path
+            return remainingPath ? 
+              `${originalPathPrefix}${remainingPath}` : 
+              originalPathPrefix;
+          }
+
+          // If no mapping found, return the path as is
+          return transformedPath;
+        };
+
+        // Get the original path
+        originalPath = findOriginalPath(pathSegments.join('/'));
+
+      } catch (e) {
+        // If not found in transformed data, try original data structure
+        console.log('Path not found in transformed data, trying original structure');
+        
+        const validRootPaths = ['person', 'homeAddress', 'personalEmail', 'adobeCorpnew'];
+        if (!validRootPaths.includes(pathSegments[0])) {
+          throw new Error(`Invalid root path: ${pathSegments[0]}. Available root paths are: ${validRootPaths.join(', ')}`);
+        }
+        
+        currentData = userData;
+        originalPath = pathSegments.join('/');
+        
+        // Navigate through original data structure
+        for (const segment of pathSegments) {
+          if (!currentData || typeof currentData !== 'object' || !(segment in currentData)) {
+            throw new Error(`Invalid path: ${pathSegments.join('/')} (${segment} is not valid)`);
+          }
+          currentData = currentData[segment];
+        }
+      }
+
+      // Set the attribute details
+      setAttributeDetails({
+        name: pathSegments[pathSegments.length - 1],
+        path: pathSegments.join('/'),
+        value: currentData,
+        dataType: typeof currentData,
+        xdmPath: `xdm:${originalPath}`, // Always use original path for XDM
+        description: getAttributeDescription(pathSegments[pathSegments.length - 1]),
+        status: 'Active',
+        owner: 'Data Team',
+        lastModified: new Date().toISOString(),
+        usageCount: Math.floor(Math.random() * 1000),
+        tags: ['user', 'profile', 'attribute'],
+        dataClassification: 'Confidential',
+        displayName: pathSegments[pathSegments.length - 1],
+        definition: getAttributeDescription(pathSegments[pathSegments.length - 1]),
+        sampleValues: generateAllPossibleValues(typeof currentData),
+        xdmSchema: 'https://ns.adobe.com/xdm/context/profile',
+        xdmFieldGroup: 'profile-personal-details',
+        latency: 'Real-time',
+        identity: false,
+        historicalDataEnabled: true,
+        dataSteward: 'John Doe',
+        dataSource: isTransformedPath ? 'Transformed Data Service' : 'User Profile Service',
+        aepDatasets: [
+          { id: '1', name: 'Profile Dataset', description: 'Main profile dataset' },
+          { id: '2', name: 'Identity Dataset', description: 'Identity management dataset' }
+        ],
+        sampleSnapshotQuery: `SELECT * FROM ${isTransformedPath ? 'transformed_profile' : 'profile'} WHERE ${originalPath} IS NOT NULL LIMIT 5`
+      });
+
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching attribute details:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching attribute details');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Add intermediate tables data
-  const intermediateTables: IntermediateTable[] = [
-    {
-      name: 'Raw_User_Data',
-      description: 'Initial data collection from various sources',
-      rowCount: 1250000
-    },
-    {
-      name: 'Processed_Data',
-      description: 'Cleaned and validated data',
-      rowCount: 980000
-    },
-    {
-      name: 'Enriched_Data',
-      description: 'Data with additional computed attributes',
-      rowCount: 980000
-    }
-  ];
-
-  // Add table nodes data
-  const tableNodes: TableNode[] = [
-    {
-      name: 'User_Profile_Data',
-      type: 'source',
-      x: 50,
-      y: 50
-    },
-    {
-      name: 'Email_Verification_Data',
-      type: 'source',
-      x: 50,
-      y: 150
-    },
-    {
-      name: 'User_Behavior_Data',
-      type: 'source',
-      x: 50,
-      y: 250
-    },
-    {
-      name: 'User_Segmentation_Data',
-      type: 'intermediate',
-      x: 350,
-      y: 100
-    },
-    {
-      name: 'User_Enrichment_Data',
-      type: 'intermediate',
-      x: 350,
-      y: 200
-    },
-    {
-      name: 'User_Attributes',
-      type: 'destination',
-      x: 650,
-      y: 150
-    }
-  ];
-
   useEffect(() => {
-    const fetchAttributeDetails = () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        // Get the path from the URL, removing the leading slash
-        const fullPath = location.pathname;
-        const pathWithoutPrefix = fullPath.replace('/attribute/', '');
-        const pathSegments = pathWithoutPrefix ? pathWithoutPrefix.split('/') : attributePath?.split('/') || [];
-        
-        // Find the attribute in the userData
-        let currentData: any = userData;
-        for (const segment of pathSegments) {
-          if (currentData && typeof currentData === 'object' && segment in currentData) {
-            currentData = currentData[segment];
-          } else {
-            throw new Error(`Attribute not found: ${pathWithoutPrefix}`);
-          }
-        }
-        
-        // Generate metadata for the attribute
-        const metadata: AttributeMetadata = {
-          name: pathSegments[pathSegments.length - 1],
-          path: pathSegments,
-          value: currentData,
-          dataType: typeof currentData === 'string' ? 'String' :
-                   typeof currentData === 'number' ? 'Number' :
-                   typeof currentData === 'boolean' ? 'Boolean' :
-                   Array.isArray(currentData) ? 'Array' : 'Object',
-          xdmPath: pathSegments.join('.'),
-          description: getAttributeDescription(pathSegments[pathSegments.length - 1]),
-          status: Math.random() > 0.1 ? 'Active' : 'Deprecated',
-          owner: ['Priya Shanmugan', 'John Smith', 'Sarah Chen', 'Mike Johnson'][Math.floor(Math.random() * 4)],
-          lastModified: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
-          privacyLevel: 'High',
-          retentionPeriod: '3 years',
-          usageCount: Math.floor(Math.random() * 10000) + 5000,
-          tags: ['sensitive', 'personal', 'user-generated'],
-          // New fields
-          dataClassification: 'Core',
-          displayName: 'User Data',
-          definition: 'Data related to user profiles',
-          sampleValues: generateSampleValues(currentData),
-          allPossibleValues: generateAllPossibleValues(currentData),
-          xdmSchema: 'UserProfileSchema',
-          xdmFieldGroup: 'UserProfile',
-          xdmDataType: 'Object',
-          latency: '100ms',
-          identity: 'User ID',
-          historicalDataEnabled: true,
-          dataSteward: 'Data Steward',
-          dataSource: 'Data Source',
-          aepDatasets: ['UserProfileDataset'],
-          sampleSnapshotQuery: 'SELECT * FROM UserProfile WHERE userId = ?'
-        };
-        
-        setAttributeData(metadata);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load attribute details');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchAttributeDetails();
-  }, [location.pathname, attributePath]);
+  }, [attributePath]);
 
   const getAttributeDescription = (attributeName: string): string => {
     const descriptions: Record<string, string> = {
-      'mostRecentOSVersion': 'The most recent operating system version recorded for this user on this platform.',
-      'firstname': 'The user\'s first name as provided during registration.',
-      'lastname': 'The user\'s last name as provided during registration.',
-      'countryCode': 'The ISO country code for the user\'s location.',
-      'address': 'The user\'s email address.',
-      'isAdobeEmployee': 'Indicates whether the user is an Adobe employee.',
-      'emailDomain': 'The domain portion of the user\'s email address.',
-      'emailValidFlag': 'Indicates if the email address is valid.',
-      'hashedEmail': 'A hashed version of the email address for security.',
-      'modelScore': 'The numerical score from the predictive model.',
-      'modelPercentileScore': 'The percentile rank of the model score.',
-      'modelScoreDate': 'The date when the model score was calculated.',
-      'modelUserSegment': 'The user segment assigned based on the model score.',
+      'id': 'A unique identifier for the entity.',
+      'name': 'The display name or title of the entity.',
+      'createdAt': 'The timestamp when this entity was created.',
+      'updatedAt': 'The timestamp when this entity was last updated.',
+      'status': 'The current status of the entity.',
+      'type': 'The type or category of the entity.',
+      'description': 'A detailed description of the entity.',
+      'email': 'Email address associated with the entity.',
+      'phone': 'Phone number associated with the entity.',
+      'address': 'Physical or mailing address.',
+      'tags': 'Labels or categories associated with the entity.',
+      'metadata': 'Additional metadata or properties.',
+      'config': 'Configuration settings or parameters.',
+      'permissions': 'Access control and permission settings.',
+      'version': 'Version number or identifier.',
     };
-    
-    return descriptions[attributeName] || 'A structured identifier used for data organization and management.';
+
+    return descriptions[attributeName.toLowerCase()] || 'No description available';
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -877,70 +893,37 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
     navigate(-1);
   };
 
-  const renderValuePreview = (value: any, dataType: string) => {
-    if (dataType === 'Object' && value !== null) {
-      return (
-        <Box sx={{ 
-          maxHeight: '200px', 
-          overflow: 'auto',
-          backgroundColor: alpha('#f5f5f5', 0.5),
-          p: 1,
-          borderRadius: 1,
-          fontSize: '0.875rem',
-          fontFamily: 'monospace'
-        }}>
-          <pre>{JSON.stringify(value, null, 2)}</pre>
-        </Box>
-      );
+  const renderValuePreview = (value: any): string => {
+    if (!value) return 'No sample values available';
+    if (Array.isArray(value)) {
+      return value.slice(0, 3).map(String).join(', ') + (value.length > 3 ? '...' : '');
     }
-    
-    return (
-      <Typography variant="body2" sx={{ 
-        wordBreak: 'break-all',
-        backgroundColor: alpha('#f5f5f5', 0.5),
-        p: 1,
-        borderRadius: 1,
-        fontSize: '0.875rem',
-        fontFamily: 'monospace'
-      }}>
-        {JSON.stringify(value)}
-      </Typography>
-    );
+    return String(value);
   };
 
   const handleExpandSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+    // Implementation of handleExpandSection
   };
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    // Menu click handler implementation
+    // Implementation of handleMenuClick
   };
 
   const handleDrawerToggle = () => {
-    // Drawer toggle handler implementation
+    // Implementation of handleDrawerToggle
   };
 
   const handleSpeedDialToggle = () => {
-    // Speed dial toggle handler implementation
+    // Implementation of handleSpeedDialToggle
   };
 
   const handleEditClick = () => {
-    if (attributeData) {
-      setEditFormData({
-        description: attributeData.description || '',
-        tags: attributeData.tags || [],
-        latency: attributeData.latency || '',
-        displayName: attributeData.displayName || '',
-        definition: attributeData.definition || '',
-        dataClassification: attributeData.dataClassification || '',
-        dataSteward: attributeData.dataSteward || '',
-        dataSource: attributeData.dataSource || ''
-      });
-      setEditDialogOpen(true);
-    }
+    setEditFormData({
+      description: attributeDetails?.description || '',
+      latency: attributeDetails?.latency || '',
+      tags: attributeDetails?.tags || []
+    });
+    setEditDialogOpen(true);
   };
 
   const handleEditDialogClose = () => {
@@ -948,43 +931,68 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
   };
 
   const handleEditSave = (data: Partial<AttributeMetadata>) => {
-    if (attributeData) {
-      setAttributeData({
-        ...attributeData,
-        ...data
-      });
+    if (attributeDetails) {
+      setAttributeDetails({ ...attributeDetails, ...data });
     }
     setEditDialogOpen(false);
   };
 
-  const generateSampleValues = (value: any): any[] => {
-    if (typeof value === 'string') {
-      return [value, `Sample ${value}`, `${value} Example`];
-    } else if (typeof value === 'number') {
-      return [value, value + 1, value - 1];
-    } else if (typeof value === 'boolean') {
-      return [value, !value];
-    } else if (Array.isArray(value)) {
-      return [value.slice(0, 3), value.slice(3, 6), value.slice(6, 9)];
-    } else if (typeof value === 'object' && value !== null) {
-      return [value, { ...value, sample: true }, { ...value, example: true }];
+  const handleTagDelete = (tag: string) => {
+    if (attributeDetails?.tags) {
+      const updatedTags = attributeDetails.tags.filter(t => t !== tag);
+      setAttributeDetails(prev => prev ? { ...prev, tags: updatedTags } : null);
     }
-    return [value];
   };
 
-  const generateAllPossibleValues = (value: any): any[] => {
-    if (typeof value === 'string') {
-      return ['value1', 'value2', 'value3', 'value4', 'value5'];
-    } else if (typeof value === 'number') {
-      return [0, 1, 2, 3, 4, 5];
-    } else if (typeof value === 'boolean') {
-      return [true, false];
-    } else if (Array.isArray(value)) {
-      return [value, [...value, 'additional'], [...value, 'more']];
-    } else if (typeof value === 'object' && value !== null) {
-      return [value, { ...value, option1: true }, { ...value, option2: true }];
+  const handleDatasetChange = (dataset: Dataset, index: number) => {
+    if (attributeDetails?.aepDatasets) {
+      const updatedDatasets = [...attributeDetails.aepDatasets];
+      updatedDatasets[index] = dataset;
+      setAttributeDetails(prev => prev ? { ...prev, aepDatasets: updatedDatasets } : null);
     }
-    return [value];
+  };
+
+  const handleDatasetDelete = (index: number) => {
+    setAttributeDetails(prev => {
+      if (!prev?.aepDatasets) return prev;
+      const newDatasets = [...prev.aepDatasets];
+      newDatasets.splice(index, 1);
+      return { ...prev, aepDatasets: newDatasets };
+    });
+  };
+
+  const generateAllPossibleValues = (dataType: string): any[] => {
+    switch (dataType.toLowerCase()) {
+      case 'boolean':
+        return [true, false];
+      case 'string':
+        return ['Sample text value'];
+      case 'number':
+        return [0, 1, 100, -1];
+      case 'object':
+        return [{ key: 'value' }];
+      case 'status':
+        return ['active', 'inactive', 'pending', 'archived'];
+      case 'priority':
+        return ['low', 'medium', 'high', 'critical'];
+      case 'visibility':
+        return ['public', 'private', 'restricted'];
+      default:
+        return ['Values depend on the specific use case and business rules'];
+    }
+  };
+
+  const handleIdentityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setAttributeDetails(prev => prev ? { ...prev, identity: event.target.checked } : null);
+  };
+
+  const handleDataTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newDataType = event.target.value;
+    setAttributeDetails(prev => prev ? {
+      ...prev,
+      dataType: newDataType,
+      sampleValues: generateAllPossibleValues(newDataType)
+    } : null);
   };
 
   const renderContent = () => (
@@ -1013,7 +1021,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
             fontWeight: 600,
             mb: 1
           }}>
-            {(attributeData?.usageCount ? Math.floor(attributeData.usageCount / 10) : 0).toLocaleString()}
+            {(attributeDetails?.usageCount ? Math.floor(attributeDetails.usageCount / 10) : 0).toLocaleString()}
           </Typography>
           <Typography variant="subtitle1" sx={{ 
             color: '#666666',
@@ -1041,7 +1049,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
             fontWeight: 600,
             mb: 1
           }}>
-            {(attributeData?.usageCount ? Math.floor(attributeData.usageCount * 0.1) : 0).toLocaleString()}
+            {(attributeDetails?.usageCount ? Math.floor(attributeDetails.usageCount / 25) : 0).toLocaleString()}
           </Typography>
           <Typography variant="subtitle1" sx={{ 
             color: '#666666',
@@ -1140,33 +1148,14 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
           </Table>
         </TableContainer>
       </Paper>
-      
-      {/* Usage Timeline */}
-      <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-        Usage Timeline
-      </Typography>
-      <Paper sx={{ 
-        p: 3,
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-        border: '1px solid',
-        borderColor: 'divider',
-        minHeight: 400,
-      }}>
-        <UsageChart data={usageData} height={400} />
-      </Paper>
     </Box>
   );
 
   // Add a new function to render the lineage content
   const renderLineageContent = () => (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
-        Data Lineage
-      </Typography>
-      
+    <Box sx={{ px: 2, pt: 0.2, pb: 2 }}>
       <Paper sx={{ 
-        p: 3,
+        p: 2,
         borderRadius: '12px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
         border: '1px solid',
@@ -1370,10 +1359,11 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
 
   return (
     <Box sx={{ 
-      height: '100vh', 
+      height: '100%',
       display: 'flex', 
       flexDirection: 'column',
-      bgcolor: alpha(theme.palette.background.default, 0.5)
+      bgcolor: alpha(theme.palette.background.default, 0.5),
+      overflow: 'hidden'
     }}>
       {/* Header */}
       <Box sx={{ 
@@ -1447,23 +1437,24 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
       {/* Main Content */}
       <Box sx={{ 
         flex: 1, 
-        minHeight: 0, 
         display: 'flex', 
         flexDirection: 'column',
         position: 'relative',
         p: '8px',
-        gap: 2
+        gap: 2,
+        overflow: 'hidden'
       }}>
-        <Box sx={{ display: 'flex', gap: 2, flex: 1, minHeight: 0 }}>
+        <Box sx={{ display: 'flex', gap: 2, flex: 1, overflow: 'hidden' }}>
           {/* Left Panel - Overview */}
           <Paper sx={{ 
             width: 300,
             p: 2, 
             borderRight: '1px solid',
             borderColor: alpha(theme.palette.divider, 0.08),
-            overflow: 'auto',
             borderRadius: '12px',
             boxShadow: `0 2px 12px ${alpha('#000', 0.04)}`,
+            overflow: 'auto',
+            height: '100%'
           }}>
             <Typography variant="h6" sx={{ 
               mb: 2,
@@ -1477,17 +1468,17 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                 color: alpha('#000', 0.8),
                 fontWeight: 500
               }}>
-                {attributeData?.displayName || attributeData?.name}
+                {attributeDetails?.displayName || attributeDetails?.name}
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph sx={{ 
                 color: alpha('#000', 0.6),
                 fontSize: '0.875rem',
                 lineHeight: 1.6
               }}>
-                {attributeData?.definition || attributeData?.description}
+                {attributeDetails?.definition || attributeDetails?.description}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {attributeData?.tags?.map((tag, index) => (
+                {attributeDetails?.tags?.map((tag, index) => (
                   <Chip 
                     key={index} 
                     label={tag} 
@@ -1525,19 +1516,19 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                   color: alpha('#000', 0.7),
                   fontSize: '0.875rem'
                 }}>
-                  {attributeData?.dataType}
+                  {attributeDetails?.dataType}
                 </Typography>
               </Box>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.secondary">Status</Typography>
                 <Chip
-                  label={attributeData?.status}
+                  label={attributeDetails?.status}
                   size="small"
                   sx={{
-                    backgroundColor: attributeData?.status === 'Active' 
+                    backgroundColor: attributeDetails?.status === 'Active' 
                       ? alpha(theme.palette.success.main, 0.1)
                       : alpha(theme.palette.warning.main, 0.1),
-                    color: attributeData?.status === 'Active'
+                    color: attributeDetails?.status === 'Active'
                       ? theme.palette.success.main
                       : theme.palette.warning.main,
                     fontWeight: 500,
@@ -1581,7 +1572,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                   gap: 1
                 }}>
                   <PersonIcon sx={{ fontSize: 16, color: alpha('#000', 0.5) }} />
-                  {attributeData?.owner}
+                  {attributeDetails?.owner}
                 </Typography>
               </Box>
               <Box sx={{ mb: 2 }}>
@@ -1594,7 +1585,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                   gap: 1
                 }}>
                   <PersonIcon sx={{ fontSize: 16, color: alpha('#000', 0.5) }} />
-                  {attributeData?.dataSteward}
+                  {attributeDetails?.dataSteward}
                 </Typography>
               </Box>
             </Box>
@@ -1606,7 +1597,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                 color: alpha('#000', 0.7),
                 fontSize: '0.875rem'
               }}>
-                {attributeData?.lastModified}
+                {attributeDetails?.lastModified}
               </Typography>
             </Box>
           </Paper>
@@ -1614,7 +1605,9 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
           {/* Right Panel - Content Tabs */}
           <Box sx={{ 
             flex: 1, 
-            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
             backgroundColor: 'white',
             borderRadius: '12px',
             boxShadow: `0 2px 12px ${alpha('#000', 0.04)}`,
@@ -1623,7 +1616,8 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
               borderBottom: 1, 
               borderColor: alpha(theme.palette.divider, 0.08),
               px: 2,
-              mb: 2
+              mb: 2,
+              flexShrink: 0
             }}>
               <Tabs 
                 value={tabValue} 
@@ -1654,6 +1648,8 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
 
             {/* Tab Panels */}
             <Box sx={{ 
+              flex: 1,
+              overflow: 'auto',
               px: 0,
               pb: 2,
               width: '100%'
@@ -1690,7 +1686,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.dataType}
+                          {attributeDetails?.dataType}
                         </Typography>
                       </Box>
                       <Box sx={{ mb: 2 }}>
@@ -1707,7 +1703,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.dataClassification}
+                          {attributeDetails?.dataClassification}
                         </Typography>
                       </Box>
                       <Box sx={{ mb: 2 }}>
@@ -1724,7 +1720,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.identity}
+                          {attributeDetails?.identity}
                         </Typography>
                       </Box>
                     </Grid>
@@ -1743,7 +1739,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.latency}
+                          {attributeDetails?.latency}
                         </Typography>
                       </Box>
                       <Box sx={{ mb: 2 }}>
@@ -1760,7 +1756,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.dataSource}
+                          {attributeDetails?.dataSource}
                         </Typography>
                       </Box>
                       <Box sx={{ mb: 2 }}>
@@ -1775,13 +1771,13 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                         </Typography>
                         <Box sx={{ mt: 0.5 }}>
                           <Chip
-                            label={attributeData?.historicalDataEnabled ? "Yes" : "No"}
+                            label={attributeDetails?.historicalDataEnabled ? "Yes" : "No"}
                             size="small"
                             sx={{
-                              backgroundColor: attributeData?.historicalDataEnabled 
+                              backgroundColor: attributeDetails?.historicalDataEnabled 
                                 ? alpha(theme.palette.success.main, 0.1)
                                 : alpha(theme.palette.warning.main, 0.1),
-                              color: attributeData?.historicalDataEnabled
+                              color: attributeDetails?.historicalDataEnabled
                                 ? theme.palette.success.main
                                 : theme.palette.warning.main,
                               fontWeight: 500,
@@ -1828,7 +1824,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.xdmSchema}
+                          {attributeDetails?.xdmSchema}
                         </Typography>
                       </Box>
                       <Box sx={{ mb: 2 }}>
@@ -1845,28 +1841,11 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.xdmFieldGroup}
+                          {attributeDetails?.xdmFieldGroup}
                         </Typography>
                       </Box>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-                          fontSize: '0.75rem', 
-                          fontWeight: 600, 
-                          textTransform: 'uppercase', 
-                          letterSpacing: '0.5px',
-                          color: alpha('#000', 0.5)
-                        }}>
-                          XDM Data Type
-                        </Typography>
-                        <Typography variant="body2" sx={{ 
-                          color: alpha('#000', 0.7), 
-                          fontSize: '0.875rem' 
-                        }}>
-                          attribute
-                        </Typography>
-                      </Box>
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
                           fontSize: '0.75rem', 
@@ -1888,7 +1867,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           borderRadius: '8px',
                           lineHeight: 1.5
                         }}>
-                          {attributeData?.xdmPath}
+                          {attributeDetails?.xdmPath}
                         </Typography>
                       </Box>
                     </Grid>
@@ -1926,7 +1905,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.owner}
+                          {attributeDetails?.owner}
                         </Typography>
                       </Box>
                     </Grid>
@@ -1945,7 +1924,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                           color: alpha('#000', 0.7), 
                           fontSize: '0.875rem' 
                         }}>
-                          {attributeData?.dataSteward}
+                          {attributeDetails?.dataSteward}
                         </Typography>
                       </Box>
                     </Grid>
@@ -1976,7 +1955,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                     color: alpha('#000', 0.7),
                     lineHeight: 1.5
                   }}>
-                    {renderValuePreview(attributeData?.sampleValues, attributeData?.dataType || '')}
+                    {renderValuePreview(attributeDetails?.sampleValues)}
                   </Box>
                 </Paper>
 
@@ -2000,19 +1979,12 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                     flexWrap: 'wrap',
                     gap: 1
                   }}>
-                    {attributeData?.aepDatasets?.map((dataset, index) => (
+                    {attributeDetails?.aepDatasets?.map((dataset: Dataset, index: number) => (
                       <Chip
-                        key={index}
-                        label={dataset}
-                        sx={{
-                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                          color: theme.palette.primary.main,
-                          fontWeight: 500,
-                          '& .MuiChip-label': {
-                            px: 1.5,
-                            fontSize: '0.75rem'
-                          }
-                        }}
+                        key={dataset.id}
+                        label={dataset.name}
+                        onDelete={() => handleDatasetDelete(index)}
+                        sx={{ margin: 0.5 }}
                       />
                     ))}
                   </Box>
@@ -2043,7 +2015,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ attributePath }) =>
                     whiteSpace: 'pre-wrap',
                     overflow: 'auto'
                   }}>
-                    {attributeData?.sampleSnapshotQuery}
+                    {attributeDetails?.sampleSnapshotQuery}
                   </Box>
                 </Paper>
               </TabPanel>

@@ -9,17 +9,12 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "esnext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
-    "baseUrl": "src"
-  },
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifiers": true
+    "jsx": "react-jsx"
   },
   "include": ["src"]
 } 

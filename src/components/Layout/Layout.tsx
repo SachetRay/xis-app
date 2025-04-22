@@ -355,7 +355,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             }}
           >
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>DEMO MODE</Typography>
-            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>SACHET</Typography>
           </Box>
         )}
         
@@ -423,24 +422,43 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 Ask DGP
               </Button>
-              <Avatar
-                sx={{
-                  width: 32,
-                  height: 32,
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.3)',
-                    transform: 'translateY(-1px)'
-                  }
-                }}
-              >
-                S
-              </Avatar>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: 2,
+                px: 2,
+                py: 0.5,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.3)',
+                  transform: 'translateY(-1px)'
+                }
+              }}>
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    bgcolor: 'transparent',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: 500
+                  }}
+                >
+                  S
+                </Avatar>
+                <Typography
+                  sx={{
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: 500
+                  }}
+                >
+                  Sachet
+                </Typography>
+              </Box>
             </Box>
           </Toolbar>
         </AppBar>
