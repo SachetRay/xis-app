@@ -1264,6 +1264,11 @@ const HomePage: React.FC = () => {
 
       {/* Render the appropriate update section */}
       {renderUpdateSection()}
+
+      <Typography>
+        {/* Fix escaped single quote */}
+        That&apos;s all for now
+      </Typography>
     </Box>
   );
 };

@@ -1,0 +1,22 @@
+/* Add styles to left-align the side navigation items */
+.MuiListItemButton-root,
+.MuiListItem-root,
+.MuiListItemText-root {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+.MuiListItemIcon-root {
+  min-width: 40px !important;
+  margin-right: 8px !important;
+}
+
+/* Add a little space at the beginning of nav items for better left alignment */
+.MuiList-root .MuiListItem-root {
+  padding-left: 16px !important;
+}
+
+/* Ensure navigation text is properly aligned */
+.MuiListItemText-primary {
+  text-align: left !important;
+} 

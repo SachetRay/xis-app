@@ -1118,10 +1118,7 @@ const DataWizard: React.FC = () => {
           onClick={(e) => e.stopPropagation()}
         >
           <TextField
-            autoFocus
-            inputRef={searchInputRef}
-            fullWidth
-            placeholder="Search attributes, events, or values..."
+            placeholder="Search attributes..."
             value={searchQuery}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             size="medium"

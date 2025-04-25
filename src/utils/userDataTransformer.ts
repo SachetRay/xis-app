@@ -2,219 +2,199 @@ import { UserData } from '../data/userData';
 import { TransformedUserData } from '../types/transformedUserData';
 
 export function transformUserData(userData: UserData): TransformedUserData {
-  const memberAccountGUID = userData.adobeCorpnew.memberAccountGUID;
-  
   return {
     userDetails: {
       identity: {
         firstName: userData.person.name.firstname,
         lastName: userData.person.name.lastname,
         countryCode: userData.homeAddress.countryCode,
-        userAccountCreationDate: memberAccountGUID.userDetails.userAccountCreationDate,
-        isAdobeEmployee: userData.adobeCorpnew.isAdobeEmployee === 'YES'
+        userAccountCreationDate: userData.adobeCorpnew.memberAccountGUID.userDetails.userAccountCreationDate,
+        isAdobeEmployee: userData.adobeCorpnew.isAdobeEmployee === "YES"
       },
       email: {
         address: userData.personalEmail.address,
         emailDomain: userData.adobeCorpnew.emailDomain,
         hashedEmail: userData.adobeCorpnew.hashedEmail,
-        emailValidFlag: userData.adobeCorpnew.emailValidFlag === 'YES'
+        emailValidFlag: userData.adobeCorpnew.emailValidFlag === "YES"
       },
       authentication: {
-        authenticationSource: memberAccountGUID.userDetails.authenticationSource,
-        authenticationSourceType: memberAccountGUID.userDetails.authenticationSourceType,
-        signupSourceName: memberAccountGUID.userDetails.signupSourceName,
-        signupSocialAccount: memberAccountGUID.userDetails.signupSocialAccount,
-        signupCategory: memberAccountGUID.userDetails.signupCategory
+        authenticationSource: userData.adobeCorpnew.memberAccountGUID.userDetails.authenticationSource,
+        authenticationSourceType: userData.adobeCorpnew.memberAccountGUID.userDetails.authenticationSourceType,
+        signupSourceName: userData.adobeCorpnew.memberAccountGUID.userDetails.signupSourceName,
+        signupSocialAccount: userData.adobeCorpnew.memberAccountGUID.userDetails.signupSocialAccount,
+        signupCategory: userData.adobeCorpnew.memberAccountGUID.userDetails.signupCategory
       },
       accountSystemInfo: {
-        type2eLinkedStatus: memberAccountGUID.userDetails.type2eLinkedStatus,
-        linkToType2e: memberAccountGUID.userDetails.linkToType2e,
-        type2eParentType: memberAccountGUID.userDetails.type2eParentType
+        type2eLinkedStatus: userData.adobeCorpnew.memberAccountGUID.userDetails.type2eLinkedStatus,
+        linkToType2e: userData.adobeCorpnew.memberAccountGUID.userDetails.linkToType2e,
+        type2eParentType: userData.adobeCorpnew.memberAccountGUID.userDetails.type2eParentType
       },
       languagePreferences: {
-        firstPref: memberAccountGUID.userDetails.firstPref,
-        secondPref: memberAccountGUID.userDetails.secondPref,
-        thirdPref: memberAccountGUID.userDetails.thirdPref
+        firstPref: userData.adobeCorpnew.memberAccountGUID.userDetails.firstPref,
+        secondPref: userData.adobeCorpnew.memberAccountGUID.userDetails.secondPref,
+        thirdPref: userData.adobeCorpnew.memberAccountGUID.userDetails.thirdPref
       },
       status: {
-        ccFunnelState: memberAccountGUID.userDetails.ccFunnelState,
-        dcFunnelState: memberAccountGUID.userDetails.dcFunnelState,
+        ccFunnelState: userData.adobeCorpnew.memberAccountGUID.userDetails.ccFunnelState,
+        dcFunnelState: userData.adobeCorpnew.memberAccountGUID.userDetails.dcFunnelState,
         applicationDetails: {
-          customerState: memberAccountGUID.userDetails.applicationDetails?.PHOTOSHOP?.customerState || 'Unknown'
+          customerState: userData.adobeCorpnew.memberAccountGUID.userDetails.applicationDetails.customerState
         }
       }
     },
-    
     emailMarketingPermission: {
-      val: true, // This should be derived from actual data
-      time: new Date().toISOString() // This should be derived from actual data
+      val: true, // This should be derived from actual data if available
+      time: new Date().toISOString() // This should be derived from actual data if available
     },
-    
     individualEntitlements: {
-      numberOfEntitledProducts: memberAccountGUID.entitlements.numberOfEntitledProducts,
+      numberOfEntitledProducts: userData.adobeCorpnew.memberAccountGUID.entitlements.numberOfEntitledProducts,
       productInfo: {
-        productCode: 'PHOTOSHOP_CC_INDV',
-        productName: 'Adobe Photoshop CC - Individual',
-        productID: 'PROD-PS-CC-I',
-        family: 'Creative Cloud',
-        bundleID: null
+        productCode: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.productCode,
+        productName: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.productName,
+        productID: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.productID,
+        family: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.family,
+        bundleID: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.bundleID
       },
       offerInfo: {
-        offerID: 'TRIAL_PS_INDV_30D',
-        offerType: 'Trial',
-        offerTermValue: 30,
-        offerTermUnit: 'Day',
-        promotionType: 'Standard Trial',
-        cloud: 'CREATIVE',
-        commitmentType: 'ABM'
+        offerID: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.offerID,
+        offerType: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.offerType,
+        offerTermValue: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.offerTermValue,
+        offerTermUnit: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.offerTermUnit,
+        promotionType: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.promotionType || "",
+        cloud: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.cloud,
+        commitmentType: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.commitmentType
       },
       acquisitionInfo: {
-        routeToMarket: 'Direct Web Sale',
-        marketSegment: 'Consumer',
-        appStore: null
+        routeToMarket: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.routeToMarket,
+        marketSegment: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.marketSegment,
+        appStore: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.appStore
       },
       trialInfo: {
-        trialStartDTS: '2025-04-01T00:00:00Z',
-        trialEndDTS: '2025-05-01T00:00:00Z'
+        trialStartDTS: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.trialStartDTS,
+        trialEndDTS: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.trialEndDTS
       },
       statusInfo: {
-        paymentStatus: 'InTrial',
-        hardCancelDTS: null,
-        softCancelDTS: null,
-        tenure: 21,
-        purchaseDTS: null,
-        lastPaymentConfirmationType: null
+        paymentStatus: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.paymentStatus,
+        hardCancelDTS: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.hardCancelDTS,
+        softCancelDTS: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.softCancelDTS,
+        tenure: parseInt(userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.tenure) || 0,
+        purchaseDTS: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.purchaseDTS,
+        lastPaymentConfirmationType: userData.adobeCorpnew.memberAccountGUID.entitlements.phsp_direct_individual.keyConfirmationType
       }
     },
-    
     teamEntitlements: {
       contractInfo: {
-        buyingProgram: memberAccountGUID.contract.buyingProgram,
-        contractStartDTS: memberAccountGUID.contract.contractStartDTS,
-        contractEndDTS: memberAccountGUID.contract.contractEndDTS,
-        contractStatus: memberAccountGUID.contract.contractStatus,
-        contractType: memberAccountGUID.contract.contractType,
-        marketSegment: 'SMB'
+        buyingProgram: userData.adobeCorpnew.memberAccountGUID.contract.buyingProgram,
+        contractStartDTS: userData.adobeCorpnew.memberAccountGUID.contract.contractStartDTS,
+        contractEndDTS: userData.adobeCorpnew.memberAccountGUID.contract.contractEndDTS,
+        contractStatus: userData.adobeCorpnew.memberAccountGUID.contract.contractStatus,
+        contractType: userData.adobeCorpnew.memberAccountGUID.contract.contractType,
+        marketSegment: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.marketSegment
       },
-      adminRoles: memberAccountGUID.contract.adminRoles,
+      adminRoles: userData.adobeCorpnew.memberAccountGUID.contract.adminRoles,
       b2bEntitlements: {
         delegationInfo: {
-          delegationStartDTS: null,
-          delegationEndDTS: null,
-          delegationStatus: null
+          delegationStartDTS: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.delegationStartDTS,
+          delegationEndDTS: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.delegationEndDTS,
+          delegationStatus: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.delegationStatus
         },
         productInfo: {
-          productArrangementCode: 'TEAM-ARR-101',
-          productCode: 'ILLUSTRATOR_CC_TEAMS',
-          productName: 'Adobe Illustrator CC for Teams'
+          productArrangementCode: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.productArrangementCode,
+          productCode: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.productCode,
+          productName: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.productName
         },
         offerInfo: {
-          offerID: 'ILLUSTRATOR_TEAMS_ANNUAL',
-          offerType: 'PaidSubscription',
-          offerTermValue: 1,
-          offerTermUnit: 'Year'
+          offerID: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.offerID,
+          offerType: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.offerType,
+          offerTermValue: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.offerTermValue,
+          offerTermUnit: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.offerTermUnit
         },
         statusInfo: {
-          purchaseDTS: '2024-02-01T10:00:00Z',
-          hardCancelDTS: null
+          purchaseDTS: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.purchaseDTS,
+          hardCancelDTS: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.hardCancelDTS
         },
         trialDetails: {
-          trialStartDTS: null,
-          trialEndDTS: null,
-          trialToPaidConversion: false,
-          trialToPaidConversionDTS: null
+          trialStartDTS: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.trialStartDTS,
+          trialEndDTS: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.trialEndDTS,
+          trialToPaidConversion: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.trialToPaidConversion === "TRUE",
+          trialToPaidConversionDTS: userData.adobeCorpnew.memberAccountGUID.contract.b2bEntitlements.trialToPaidConversionDTS
         }
       }
     },
-    
     modelsAndScores: {
       overallScore: {
-        modelScore: memberAccountGUID.modelsAndScores.SKU_RANK.modelScore,
-        modelPercentileScore: parseFloat(memberAccountGUID.modelsAndScores.SKU_RANK.modelPercentileScore),
-        modelScoreDate: memberAccountGUID.modelsAndScores.SKU_RANK.modelScoreDate,
-        modelUserSegment: memberAccountGUID.modelsAndScores.SKU_RANK.modelUserSegment
+        modelScore: userData.adobeCorpnew.memberAccountGUID.modelsAndScores.modelScore,
+        modelPercentileScore: parseFloat(userData.adobeCorpnew.memberAccountGUID.modelsAndScores.modelPercentileScore),
+        modelScoreDate: userData.adobeCorpnew.memberAccountGUID.modelsAndScores.modelScoreDate,
+        modelUserSegment: userData.adobeCorpnew.memberAccountGUID.modelsAndScores.modelUserSegment
       },
-      actions: [
-        'action',
-        'offerTerm',
-        'percentileScore',
-        'productPrice',
-        'rank',
-        'score',
-        'scoreDate',
-        'testID'
-      ],
-      contents: [
-        'surface',
-        'URL',
-        'rank'
-      ]
+      actions: userData.adobeCorpnew.memberAccountGUID.modelsAndScores.actions.map(action => action.action),
+      contents: userData.adobeCorpnew.memberAccountGUID.modelsAndScores.contents.map(content => content.URL)
     },
-    
     productActivity: {
       installs: {
         desktop: {
           mac: {
-            firstActivityDate: '2024-05-10T11:00:00Z',
-            recentActivityDate: '2025-04-20T11:00:00Z',
-            mostRecentAppVersion: '25.5.1',
-            mostRecentOSVersion: 'macOS 14.4.1'
+            firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.desktop.mac.firstActivityDate,
+            recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.desktop.mac.recentActivityDate,
+            mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.desktop.mac.mostRecentAppVersion,
+            mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.desktop.mac.mostRecentOSVersion
           },
           windows: {
-            firstActivityDate: '2024-08-15T16:30:00Z',
-            recentActivityDate: '2025-03-10T09:00:00Z',
-            mostRecentAppVersion: '25.4.0',
-            mostRecentOSVersion: 'Windows 11 23H2'
+            firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.desktop.windows.firstActivityDate,
+            recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.desktop.windows.recentActivityDate,
+            mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.desktop.windows.mostRecentAppVersion,
+            mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.desktop.windows.mostRecentOSVersion
           }
         },
         mobile: {
           iOS: {
-            firstActivityDate: '2024-11-01T12:00:00Z',
-            recentActivityDate: '2025-04-15T18:20:00Z',
-            mostRecentAppVersion: '8.2.1',
-            mostRecentOSVersion: 'iOS 17.4.1'
+            firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.mobile.iOS.firstActivityDate,
+            recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.mobile.iOS.recentActivityDate,
+            mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.mobile.iOS.mostRecentAppVersion,
+            mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.mobile.iOS.mostRecentOSVersion
           },
           android: {
-            firstActivityDate: '2024-11-01T12:00:00Z',
-            recentActivityDate: '2025-04-15T18:20:00Z',
-            mostRecentAppVersion: '8.2.1',
-            mostRecentOSVersion: 'iOS 17.4.1'
+            firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.mobile.android.firstActivityDate,
+            recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.mobile.android.recentActivityDate,
+            mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.mobile.android.mostRecentAppVersion,
+            mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.mobile.android.mostRecentOSVersion
           }
         },
         web: {
-          firstActivityDate: '2024-11-01T12:00:00Z',
-          recentActivityDate: '2025-04-15T18:20:00Z',
-          mostRecentAppVersion: '8.2.1',
-          mostRecentOSVersion: null
+          firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.web.firstActivityDate,
+          recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.web.recentActivityDate,
+          mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.web.mostRecentAppVersion,
+          mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appInstalls.web.mostRecentOSVersion
         }
       },
       launches: {
         desktop: {
           mac: {
-            firstActivityDate: '2024-05-10T11:05:00Z',
-            recentActivityDate: '2025-04-20T11:02:00Z',
-            mostRecentAppVersion: '25.5.1',
-            mostRecentOSVersion: 'macOS 14.4.1'
+            firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.desktop.mac.firstActivityDate,
+            recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.desktop.mac.recentActivityDate,
+            mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.desktop.mac.mostRecentAppVersion,
+            mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.desktop.mac.mostRecentOSVersion
           },
           windows: {
-            firstActivityDate: '2024-08-15T16:35:00Z',
-            recentActivityDate: '2025-03-10T09:05:00Z',
-            mostRecentAppVersion: '25.4.0',
-            mostRecentOSVersion: 'Windows 11 23H2'
+            firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.desktop.windows.firstActivityDate,
+            recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.desktop.windows.recentActivityDate,
+            mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.desktop.windows.mostRecentAppVersion,
+            mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.desktop.windows.mostRecentOSVersion
           }
         },
         mobile: {
           iOS: {
-            firstActivityDate: '2024-11-01T12:05:00Z',
-            recentActivityDate: '2025-04-15T18:22:00Z',
-            mostRecentAppVersion: '8.2.1',
-            mostRecentOSVersion: 'iOS 17.4.1'
+            firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.mobile.iOS.firstActivityDate,
+            recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.mobile.iOS.recentActivityDate,
+            mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.mobile.iOS.mostRecentAppVersion,
+            mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.mobile.iOS.mostRecentOSVersion
           },
           android: {
-            firstActivityDate: null,
-            recentActivityDate: null,
-            mostRecentAppVersion: null,
-            mostRecentOSVersion: null
+            firstActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.mobile.android.firstActivityDate,
+            recentActivityDate: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.mobile.android.recentActivityDate,
+            mostRecentAppVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.mobile.android.mostRecentAppVersion,
+            mostRecentOSVersion: userData.adobeCorpnew.memberAccountGUID.appUsage.appLaunches.mobile.android.mostRecentOSVersion
           }
         }
       }

@@ -1,0 +1,176 @@
+{
+  "userDetails": {
+    "identity": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "countryCode": "US",
+      "userAccountCreationDate": "2024-01-01T00:00:00Z",
+      "isAdobeEmployee": false
+    },
+    "email": {
+      "address": "john.doe@example.com",
+      "emailDomain": "example.com",
+      "hashedEmail": "5f4dcc3b5aa765d61d8327deb882cf99",
+      "emailValidFlag": true
+    },
+    "authentication": {
+      "authenticationSource": "Adobe ID",
+      "authenticationSourceType": "Standard",
+      "signupSourceName": "Web",
+      "signupSocialAccount": null,
+      "signupCategory": "Individual"
+    },
+    "accountSystemInfo": {
+      "type2eLinkedStatus": "Not Linked",
+      "linkToType2e": false,
+      "type2eParentType": null
+    },
+    "languagePreferences": {
+      "firstPref": "en-US",
+      "secondPref": null,
+      "thirdPref": null
+    },
+    "status": {
+      "ccFunnelState": "Trial",
+      "dcFunnelState": "Not Started",
+      "applicationDetails": {
+        "customerState": "Trial"
+      }
+    }
+  },
+  
+  "emailMarketingPermission": {
+    "val": true,
+    "time": "2024-03-15T10:30:00Z"
+  },
+  
+  "individualEntitlements": {
+    "numberOfEntitledProducts": 1,
+    "productInfo": {
+      "productCode": "PHOTOSHOP_CC_INDV",
+      "productName": "Adobe Photoshop CC - Individual",
+      "productID": "PROD-PS-CC-I",
+      "family": "Creative Cloud",
+      "bundleID": null
+    },
+    "offerInfo": {
+      "offerID": "TRIAL_PS_INDV_30D",
+      "offerType": "Trial",
+      "offerTermValue": 30,
+      "offerTermUnit": "Day",
+      "promotionType": "Standard Trial",
+      "cloud": "CREATIVE",
+      "commitmentType": "ABM"
+    },
+    "acquisitionInfo": {
+      "routeToMarket": "Direct Web Sale",
+      "marketSegment": "Consumer",
+      "appStore": null
+    },
+    "trialInfo": {
+      "trialStartDTS": "2024-03-01T00:00:00Z",
+      "trialEndDTS": "2024-03-31T00:00:00Z"
+    },
+    "statusInfo": {
+      "paymentStatus": "InTrial",
+      "hardCancelDTS": null,
+      "softCancelDTS": null,
+      "tenure": 15,
+      "purchaseDTS": null,
+      "lastPaymentConfirmationType": null
+    }
+  },
+  
+  "teamEntitlements": {
+    "contractInfo": {
+      "buyingProgram": "VIP",
+      "contractStartDTS": "2024-02-01T00:00:00Z",
+      "contractEndDTS": "2025-02-01T00:00:00Z",
+      "contractStatus": "Active",
+      "contractType": "Team",
+      "marketSegment": "SMB"
+    },
+    "adminRoles": ["User"],
+    "b2bEntitlements": {
+      "delegationInfo": {
+        "delegationStartDTS": null,
+        "delegationEndDTS": null,
+        "delegationStatus": null
+      },
+      "productInfo": {
+        "productArrangementCode": "TEAM-ARR-101",
+        "productCode": "ILLUSTRATOR_CC_TEAMS",
+        "productName": "Adobe Illustrator CC for Teams"
+      },
+      "offerInfo": {
+        "offerID": "ILLUSTRATOR_TEAMS_ANNUAL",
+        "offerType": "PaidSubscription",
+        "offerTermValue": 1,
+        "offerTermUnit": "Year"
+      },
+      "statusInfo": {
+        "purchaseDTS": "2024-02-01T10:00:00Z",
+        "hardCancelDTS": null
+      },
+      "trialDetails": {
+        "trialStartDTS": null,
+        "trialEndDTS": null,
+        "trialToPaidConversion": false,
+        "trialToPaidConversionDTS": null
+      }
+    }
+  },
+  
+  "modelsAndScores": {
+    "overallScore": {
+      "modelScore": 85,
+      "modelPercentileScore": 75.5,
+      "modelScoreDate": "2024-03-10T00:00:00Z",
+      "modelUserSegment": "High Value"
+    },
+    "actions": [
+        {
+        "action": "View",
+        "offerTerm": "Monthly",
+        "percentileScore": 90,
+        "productPrice": 29.99,
+        "rank": 1,
+        "score": 100,
+        "scoreDate": "2023-01-15",
+        "testID": "AB123"
+        }
+    ],
+    "contents": [
+        {
+        "surface": "Homepage",
+        "URL": "/product/photoshop",
+        "rank": 1
+        }
+    ]
+  },
+  
+  "productActivity": {
+    "installs": {
+      "desktop": {
+        "mac": {
+          "firstActivityDate": "2024-03-01T15:30:00Z",
+          "recentActivityDate": "2024-03-15T09:45:00Z",
+          "mostRecentAppVersion": "25.5.0",
+          "mostRecentOSVersion": "14.3.1"
+        },
+        "windows": {
+          "firstActivityDate": null,
+          "recentActivityDate": null,
+          "mostRecentAppVersion": null,
+          "mostRecentOSVersion": null
+        }
+      },
+      "web": {
+        "firstActivityDate": "2024-03-02T10:15:00Z",
+        "recentActivityDate": "2024-03-14T16:20:00Z",
+        "mostRecentAppVersion": "1.2.0",
+        "mostRecentOSVersion": "web"
+      }
+    }
+  }
+} 

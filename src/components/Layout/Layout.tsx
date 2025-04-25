@@ -17,6 +17,8 @@ import {
   Tooltip,
   Divider,
   Avatar,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
@@ -31,6 +33,9 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import SettingsIcon from '@mui/icons-material/Settings';
+import PersonIcon from '@mui/icons-material/Person';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { FEATURES } from '../../config/config';
 
 const expandedWidth = 240;
@@ -98,6 +103,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -105,6 +111,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleExpandToggle = () => {
     setIsExpanded(!isExpanded);
+  };
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
   };
 
   const drawer = (
@@ -150,13 +164,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     '& .MuiListItemIcon-root': {
                       transform: 'scale(1.1)',
                     }
+                  },
+                  textAlign: 'left',
+                  '& .MuiListItemText-root': {
+                    textAlign: 'left',
+                    marginLeft: 0
                   }
                 }}
               >
                 <ListItemIcon 
                   sx={{ 
                     color: isSelected ? item.color : alpha(item.color, 0.7),
-                    minWidth: isExpanded ? 40 : 'auto',
+                    minWidth: isExpanded ? 36 : 'auto',
                     mr: isExpanded ? 2 : 0,
                     transition: 'all 0.2s ease-in-out',
                     transform: isSelected ? 'scale(1.1)' : 'scale(1)',
@@ -180,6 +199,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         fontWeight: isSelected ? 600 : 500,
                         fontSize: '0.9rem',
                         transition: 'all 0.2s ease-in-out',
+                        textAlign: 'left'
                       }
                     }}
                   />
@@ -422,21 +442,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 Ask DGP
               </Button>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: 2,
-                px: 2,
-                py: 0.5,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.3)',
-                  transform: 'translateY(-1px)'
-                }
-              }}>
+              <Box 
+                onClick={handleUserMenuOpen}
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: 2,
+                  px: 2,
+                  py: 0.5,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.3)',
+                    transform: 'translateY(-1px)'
+                  }
+                }}
+              >
                 <Avatar
                   sx={{
                     width: 32,
@@ -459,6 +482,53 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   Sachet
                 </Typography>
               </Box>
+              
+              {/* User Menu */}
+              <Menu
+                anchorEl={userMenuAnchor}
+                open={Boolean(userMenuAnchor)}
+                onClose={handleUserMenuClose}
+                PaperProps={{
+                  sx: {
+                    mt: 1.5,
+                    minWidth: 180,
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                    borderRadius: 2,
+                    '& .MuiMenuItem-root': {
+                      py: 1.5,
+                      px: 2,
+                    }
+                  }
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem onClick={() => {
+                  handleUserMenuClose();
+                  // Navigate to profile page (if you have one)
+                }}>
+                  <ListItemIcon>
+                    <PersonIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Profile</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={() => {
+                  handleUserMenuClose();
+                  navigate('/settings');
+                }}>
+                  <ListItemIcon>
+                    <SettingsIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Settings</ListItemText>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleUserMenuClose}>
+                  <ListItemIcon>
+                    <ExitToAppIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Logout</ListItemText>
+                </MenuItem>
+              </Menu>
             </Box>
           </Toolbar>
         </AppBar>
