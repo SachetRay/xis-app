@@ -41,27 +41,112 @@ import {
   Search as SearchIcon,
   Help as HelpIcon
 } from '@mui/icons-material';
-import { createXdmPathMappings } from '../../utils/extractXdmPaths';
+import { userData } from '../../data/userData';
+import { transformedUserData } from '../../data/transformedUserData';
+import { updateTransformedData } from '../../utils/userDataTransformer';
 
 // Interface for XDM path mapping
 interface PathMapping {
   id: string;
-  xdmPath: string;
-  level1: string; // Root level
-  level2: string; // Children of level 1
-  level3: string; // Children of level 2
-  level4: string; // Children of level 3
-  level5: string; // Children of level 4
+  xdmPath: string;  // Original path from userData
+  level1: string;   // Transformed path from transformedUserData
+  level2: string;
+  level3: string;
+  level4: string;
+  level5: string;
 }
+
+// Function to extract all leaf node paths from userData
+const extractXDMPaths = (obj: any, parentPath: string = ''): string[] => {
+  let paths: string[] = [];
+  
+  for (const key in obj) {
+    const currentPath = parentPath ? `${parentPath}/${key}` : key;
+    
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      // Only recurse if it's an object and not null
+      paths = [...paths, ...extractXDMPaths(obj[key], currentPath)];
+    } else {
+      // Only add leaf nodes (non-object values)
+      paths.push(currentPath);
+    }
+  }
+  
+  return paths;
+};
+
+// Function to extract transformed paths from transformedUserData
+const extractTransformedPaths = (obj: any, parentPath: string = ''): string[] => {
+  let paths: string[] = [];
+  
+  for (const key in obj) {
+    const currentPath = parentPath ? `${parentPath}/${key}` : key;
+    
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      // Only recurse if it's an object and not null
+      paths = [...paths, ...extractTransformedPaths(obj[key], currentPath)];
+    } else {
+      // Only add leaf nodes (non-object values)
+      paths.push(currentPath);
+    }
+  }
+  
+  return paths;
+};
+
+// Function to get value at path from an object
+const getValueAtPath = (obj: any, path: string): any => {
+  return path.split('/').reduce((acc, part) => acc && acc[part], obj);
+};
+
+// Function to find matching transformed path for an XDM path
+const findMatchingTransformedPath = (xdmPath: string, xdmValue: any, transformedPaths: string[]): string => {
+  // Try to find a path with matching value
+  for (const transformedPath of transformedPaths) {
+    const transformedValue = getValueAtPath(transformedUserData, transformedPath);
+    if (transformedValue === xdmValue) {
+      return transformedPath;
+    }
+  }
+  return ''; // Return empty string if no match found
+};
+
+// Function to split a path into levels
+const splitPathIntoLevels = (path: string): { [key: string]: string } => {
+  const levels = path.split('/');
+  return {
+    level1: levels[0] || '',
+    level2: levels[1] || '',
+    level3: levels[2] || '',
+    level4: levels[3] || '',
+    level5: levels[4] || '',
+  };
+};
 
 const XDMPathMapping: React.FC = () => {
   const theme = useTheme();
   
-  // Get all mappings instead of simplified ones to ensure all leaf nodes are included
-  const allMappings = useMemo(() => createXdmPathMappings(), []);
+  // Extract leaf node paths from userData and transformedUserData
+  const xdmPaths = useMemo(() => extractXDMPaths(userData), []);
+  const transformedPaths = useMemo(() => extractTransformedPaths(transformedUserData), []);
   
-  const [mappings, setMappings] = useState<PathMapping[]>(allMappings);
-  const [filteredMappings, setFilteredMappings] = useState<PathMapping[]>(allMappings);
+  // Create initial mappings by matching values
+  const initialMappings = useMemo(() => {
+    return xdmPaths.map((xdmPath, index) => {
+      const xdmValue = getValueAtPath(userData, xdmPath);
+      const transformedPath = findMatchingTransformedPath(xdmPath, xdmValue, transformedPaths);
+      const levels = splitPathIntoLevels(transformedPath);
+      
+      return {
+        id: `${index}`,
+        xdmPath,
+        ...levels
+      } as PathMapping;
+    });
+  }, [xdmPaths, transformedPaths]);
+
+  const [mappings, setMappings] = useState<PathMapping[]>(initialMappings);
+  const [filteredMappings, setFilteredMappings] = useState<PathMapping[]>(initialMappings);
   const [searchQuery, setSearchQuery] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingMapping, setEditingMapping] = useState<PathMapping | null>(null);
@@ -251,30 +336,51 @@ const XDMPathMapping: React.FC = () => {
     setNewMapping(prev => ({ ...prev, [name]: value }));
   };
 
+  // Modified handleSaveMapping to update transformedUserData
   const handleSaveMapping = () => {
-    if (!newMapping.xdmPath || !newMapping.level1) {
+    if (!newMapping.level1) {
       setSnackbar({
         open: true,
-        message: 'XDM Path and Level 1 are required fields',
+        message: 'Level 1 is required',
         severity: 'error'
       });
       return;
     }
 
     if (editingMapping) {
-      // Update existing mapping
-      setMappings(mappings.map(m => (m.id === editingMapping.id ? newMapping : m)));
+      // Create the new transformed path
+      const newTransformedPath = [
+        newMapping.level1,
+        newMapping.level2,
+        newMapping.level3,
+        newMapping.level4,
+        newMapping.level5
+      ].filter(Boolean).join('/');
+
+      // Update the mapping in state
+      setMappings(mappings.map(m => {
+        if (m.id === editingMapping.id) {
+          // Update transformedUserData
+          const updatedData = updateTransformedData(
+            m.xdmPath,
+            newTransformedPath,
+            transformedUserData
+          );
+
+          // Dispatch a custom event to notify DataWizard
+          const event = new CustomEvent('transformedDataUpdated', {
+            detail: { updatedData }
+          });
+          window.dispatchEvent(event);
+
+          return newMapping;
+        }
+        return m;
+      }));
+
       setSnackbar({
         open: true,
         message: 'Mapping updated successfully',
-        severity: 'success'
-      });
-    } else {
-      // Add new mapping
-      setMappings([...mappings, newMapping]);
-      setSnackbar({
-        open: true,
-        message: 'New mapping added successfully',
         severity: 'success'
       });
     }
@@ -282,12 +388,12 @@ const XDMPathMapping: React.FC = () => {
     handleCloseDialog();
   };
 
-  const handleDeleteMapping = (id: string) => {
-    setMappings(mappings.filter(m => m.id !== id));
+  // Disable the ability to add new mappings since they should come from userData
+  const handleDeleteMapping = () => {
     setSnackbar({
       open: true,
-      message: 'Mapping deleted successfully',
-      severity: 'success'
+      message: 'Mappings cannot be deleted as they are derived from user data',
+      severity: 'warning'
     });
   };
 
@@ -376,31 +482,12 @@ const XDMPathMapping: React.FC = () => {
         <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
           XDM Path Mapping
         </Typography>
-        <Button 
-          variant="contained" 
-          startIcon={<AddIcon />} 
-          onClick={() => handleOpenDialog()}
-          sx={{
-            textTransform: 'none',
-            borderRadius: '8px',
-            boxShadow: 'none',
-            '&:hover': {
-              boxShadow: 'none',
-            }
-          }}
-        >
-          Add New Mapping
-        </Button>
       </Box>
 
       <Alert severity="info" sx={{ mb: 3 }}>
-        Map XDM paths to structured hierarchical paths with up to 5 levels of depth.
-        Level 1 represents the root, with each subsequent level being a child of the previous level.
-        These mappings are extracted from the userdata and reflect the structure shown in the Data Wizard.
-        All leaf nodes from the original data structure are captured here with their transformed paths.
-        <Typography variant="caption" component="div" sx={{ mt: 1 }}>
-          Total mappings: {mappings.length} | Displaying: {filteredMappings.length}
-        </Typography>
+        This page shows the mapping between XDM paths from the original user data and their transformed representation.
+        The XDM paths are read-only and derived from the source data structure.
+        You can edit the transformed path levels to update how the data is displayed in the Data Wizard.
       </Alert>
 
       <Box sx={{ mb: 3 }}>
@@ -537,7 +624,7 @@ const XDMPathMapping: React.FC = () => {
                       </IconButton>
                       <IconButton 
                         size="small" 
-                        onClick={() => handleDeleteMapping(mapping.id)}
+                        onClick={handleDeleteMapping}
                         sx={{ color: theme.palette.error.main }}
                       >
                         <DeleteIcon fontSize="small" />

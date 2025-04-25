@@ -47,6 +47,7 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
+import type { TransformedUserData } from '../../types/transformedUserData';
 
 interface ColumnData {
   items: TreeNode[];
@@ -139,6 +140,37 @@ const DataWizard: React.FC = () => {
   const [searchParams] = useSearchParams();
   const theme = useTheme();
 
+  // Add state for transformed data
+  const [transformedData, setTransformedData] = useState<TransformedUserData>(transformUserData(userData));
+
+  // Add effect to listen for transformedData updates
+  useEffect(() => {
+    const handleTransformedDataUpdate = (event: CustomEvent<{ updatedData: TransformedUserData }>) => {
+      const { updatedData } = event.detail;
+      setTransformedData(updatedData);
+      
+      // Update the columns with new tree structure
+      setColumns([
+        { items: transformToTree(updatedData), selectedItem: null }
+      ]);
+    };
+
+    // Add event listener
+    window.addEventListener('transformedDataUpdated', handleTransformedDataUpdate as EventListener);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('transformedDataUpdated', handleTransformedDataUpdate as EventListener);
+    };
+  }, []);
+
+  // Update initial columns to use transformedData state
+  useEffect(() => {
+    setColumns([
+      { items: transformToTree(transformedData), selectedItem: null }
+    ]);
+  }, [transformedData]);
+
   // Handle URL parameters
   useEffect(() => {
     const path = searchParams.get('path');
@@ -146,7 +178,6 @@ const DataWizard: React.FC = () => {
     const expand = searchParams.get('expand') === 'true';
 
     if (path || selected) {
-      const transformedData = transformUserData(userData);
       const treeData = transformToTree(transformedData);
       const pathArray = path ? path.split('/') : [];
       
@@ -200,7 +231,7 @@ const DataWizard: React.FC = () => {
       
       setColumns(newColumns);
     }
-  }, [searchParams]);
+  }, [searchParams, transformedData]);
 
   // Add a debug effect to log when selectedDetails changes
   useEffect(() => {
@@ -226,13 +257,12 @@ const DataWizard: React.FC = () => {
   // Add search functionality
   useEffect(() => {
     if (searchQuery.trim()) {
-      const transformedData = transformUserData(userData);
       const results = searchInTree(transformToTree(transformedData), searchQuery.toLowerCase());
       setSearchResults(results);
     } else {
       setSearchResults([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, transformedData]);
 
   // Focus search input when overlay opens
   useEffect(() => {
@@ -303,7 +333,6 @@ const DataWizard: React.FC = () => {
 
   // Function to navigate to a search result
   const navigateToSearchResult = (result: TreeNode) => {
-    const transformedData = transformUserData(userData);
     const path = getPathToNode(result, transformToTree(transformedData));
     
     // Reset columns and build the path
@@ -1285,7 +1314,7 @@ const DataWizard: React.FC = () => {
                             }}
                           >
                             <FolderOpenIcon sx={{ fontSize: 16 }} />
-                            {getPathToNode(result, transformToTree(transformUserData(userData))).join(' > ')}
+                            {getPathToNode(result, transformToTree(transformedData)).join(' > ')}
                           </Typography>
                         </Box>
                       </Box>

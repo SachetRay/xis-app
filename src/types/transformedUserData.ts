@@ -1,56 +1,51 @@
 // Types for transformed user data structure
 
-interface ActivityInfo {
-  firstActivityDate: string | null;
-  recentActivityDate: string | null;
-  mostRecentAppVersion: string | null;
-  mostRecentOSVersion: string | null;
-}
-
-interface Identity {
+export interface Identity {
   firstName: string;
   lastName: string;
   countryCode: string;
   userAccountCreationDate: string;
-  isAdobeEmployee: boolean;
+  isAdobeEmployee: string;
 }
 
-interface Email {
+export interface Email {
   address: string;
   emailDomain: string;
   hashedEmail: string;
-  emailValidFlag: boolean;
+  emailValidFlag: string;
 }
 
-interface Authentication {
+export interface Authentication {
   authenticationSource: string;
   authenticationSourceType: string;
   signupSourceName: string;
-  signupSocialAccount: string;
+  signupSocialAccount: string | null;
   signupCategory: string;
 }
 
-interface AccountSystemInfo {
+export interface AccountSystemInfo {
   type2eLinkedStatus: string;
-  linkToType2e: string | null;
+  linkToType2e: string;
   type2eParentType: string | null;
 }
 
-interface LanguagePreferences {
+export interface LanguagePreferences {
   firstPref: string;
-  secondPref: string;
-  thirdPref: string;
+  secondPref: string | null;
+  thirdPref: string | null;
 }
 
-interface Status {
+export interface ApplicationDetails {
+  customerState: string;
+}
+
+export interface Status {
   ccFunnelState: string;
   dcFunnelState: string;
-  applicationDetails: {
-    customerState: string;
-  };
+  applicationDetails: ApplicationDetails;
 }
 
-interface UserDetails {
+export interface UserDetails {
   identity: Identity;
   email: Email;
   authentication: Authentication;
@@ -59,12 +54,12 @@ interface UserDetails {
   status: Status;
 }
 
-interface EmailMarketingPermission {
+export interface EmailMarketingPermission {
   val: boolean;
   time: string;
 }
 
-interface ProductInfo {
+export interface ProductInfo {
   productCode: string;
   productName: string;
   productID: string;
@@ -72,37 +67,37 @@ interface ProductInfo {
   bundleID: string | null;
 }
 
-interface OfferInfo {
+export interface OfferInfo {
   offerID: string;
   offerType: string;
   offerTermValue: number;
   offerTermUnit: string;
-  promotionType: string;
+  promotionType: string | null;
   cloud: string;
   commitmentType: string;
 }
 
-interface AcquisitionInfo {
+export interface AcquisitionInfo {
   routeToMarket: string;
   marketSegment: string;
   appStore: string | null;
 }
 
-interface TrialInfo {
+export interface TrialInfo {
   trialStartDTS: string;
   trialEndDTS: string;
 }
 
-interface StatusInfo {
+export interface StatusInfo {
   paymentStatus: string;
   hardCancelDTS: string | null;
   softCancelDTS: string | null;
-  tenure: number;
+  tenure: string;
   purchaseDTS: string | null;
   lastPaymentConfirmationType: string | null;
 }
 
-interface IndividualEntitlements {
+export interface IndividualEntitlements {
   numberOfEntitledProducts: number;
   productInfo: ProductInfo;
   offerInfo: OfferInfo;
@@ -111,7 +106,7 @@ interface IndividualEntitlements {
   statusInfo: StatusInfo;
 }
 
-interface ContractInfo {
+export interface ContractInfo {
   buyingProgram: string;
   contractStartDTS: string;
   contractEndDTS: string;
@@ -120,102 +115,98 @@ interface ContractInfo {
   marketSegment: string;
 }
 
-interface DelegationInfo {
+export interface DelegationInfo {
   delegationStartDTS: string | null;
   delegationEndDTS: string | null;
   delegationStatus: string | null;
 }
 
-interface B2bProductInfo {
+export interface B2BProductInfo {
   productArrangementCode: string;
   productCode: string;
   productName: string;
 }
 
-interface B2bOfferInfo {
+export interface B2BOfferInfo {
   offerID: string;
   offerType: string;
   offerTermValue: number;
   offerTermUnit: string;
 }
 
-interface B2bStatusInfo {
+export interface B2BStatusInfo {
   purchaseDTS: string;
-  hardCancelDTS: string | null;
+  hardCancelDTS: string;
 }
 
-interface B2bTrialDetails {
-  trialStartDTS: string | null;
-  trialEndDTS: string | null;
-  trialToPaidConversion: boolean;
+export interface TrialDetails {
+  trialStartDTS: string;
+  trialEndDTS: string;
+  trialToPaidConversion: string;
   trialToPaidConversionDTS: string | null;
 }
 
-interface B2bEntitlements {
+export interface B2BEntitlements {
   delegationInfo: DelegationInfo;
-  productInfo: B2bProductInfo;
-  offerInfo: B2bOfferInfo;
-  statusInfo: B2bStatusInfo;
-  trialDetails: B2bTrialDetails;
+  productInfo: B2BProductInfo;
+  offerInfo: B2BOfferInfo;
+  statusInfo: B2BStatusInfo;
+  trialDetails: TrialDetails;
 }
 
-interface TeamEntitlements {
+export interface TeamEntitlements {
   contractInfo: ContractInfo;
   adminRoles: string[];
-  b2bEntitlements: B2bEntitlements;
+  b2bEntitlements: B2BEntitlements;
 }
 
-interface OverallScore {
+export interface OverallScore {
   modelScore: number;
-  modelPercentileScore: number;
+  modelPercentileScore: string;
   modelScoreDate: string;
   modelUserSegment: string;
 }
 
-interface ModelsAndScores {
+export interface Action {
+  action: string;
+  offerTerm: string;
+  percentileScore: number;
+  productPrice: number;
+  rank: number;
+  score: number;
+  scoreDate: string;
+  testID: string;
+}
+
+export interface Content {
+  surface: string;
+  URL: string;
+  rank: number;
+}
+
+export interface ModelsAndScores {
   overallScore: OverallScore;
-  actions: string[];
-  contents: string[];
+  actions: Action[];
+  contents: Content[];
 }
 
-interface PlatformActivity {
-  firstActivityDate: string | null;
-  recentActivityDate: string | null;
-  mostRecentAppVersion: string | null;
-  mostRecentOSVersion: string | null;
+export interface PlatformActivity {
+  firstActivityDate: string;
+  recentActivityDate: string;
+  mostRecentAppVersion: string;
+  mostRecentOSVersion: string;
 }
 
-interface DesktopActivity {
+export interface DesktopPlatforms {
   mac: PlatformActivity;
   windows: PlatformActivity;
 }
 
-interface MobileActivity {
-  iOS: PlatformActivity;
-  android: PlatformActivity;
-}
-
-interface WebActivity {
-  firstActivityDate: string;
-  recentActivityDate: string;
-  mostRecentAppVersion: string;
-  mostRecentOSVersion: string | null;
-}
-
-interface Installs {
-  desktop: DesktopActivity;
-  mobile: MobileActivity;
-  web: WebActivity;
-}
-
-interface Launches {
-  desktop: DesktopActivity;
-  mobile: MobileActivity;
-}
-
-interface ProductActivity {
-  installs: Installs;
-  launches: Launches;
+export interface ProductActivity {
+  installs: {
+    desktop: DesktopPlatforms;
+    web: PlatformActivity;
+  };
 }
 
 export interface TransformedUserData {
@@ -225,4 +216,4 @@ export interface TransformedUserData {
   teamEntitlements: TeamEntitlements;
   modelsAndScores: ModelsAndScores;
   productActivity: ProductActivity;
-} 
+}
