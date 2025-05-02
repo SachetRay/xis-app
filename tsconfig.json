@@ -14,7 +14,24 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    },
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "incremental": true,
+    "importHelpers": true,
+    "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
+    "allowUnusedLabels": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "build", "coverage", "dist"]
 } 

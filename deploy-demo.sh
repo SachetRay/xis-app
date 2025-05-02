@@ -3,7 +3,7 @@
 # Deploy Demo Script
 # This script builds and prepares the application for deployment as a read-only demo
 
-echo "🚀 Preparing Xperience Intelligence Studio for demo deployment..."
+echo "🚀 Preparing DMe Xperience Intelligence Studio for demo deployment..."
 
 # Ensure we're in demo mode
 echo "📝 Setting demo mode..."

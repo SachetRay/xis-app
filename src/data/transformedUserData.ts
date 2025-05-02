@@ -4,158 +4,142 @@ import { TransformedUserData } from '../types/transformedUserData';
 export const transformedUserData: TransformedUserData = {
   userDetails: {
     identity: {
-      firstName: '',
-      lastName: '',
-      countryCode: '',
-      userAccountCreationDate: '',
-      isAdobeEmployee: 'false'
+      firstName: "John",
+      lastName: "Doe",
+      countryCode: "US",
+      userAccountCreationDate: "2024-01-01T00:00:00Z",
+      isAdobeEmployee: false
     },
     email: {
-      address: '',
-      emailDomain: '',
-      hashedEmail: '',
-      emailValidFlag: 'false'
+      address: "john.doe@example.com",
+      emailDomain: "example.com",
+      hashedEmail: "5f4dcc3b5aa765d61d8327deb882cf99",
+      emailValidFlag: true
     },
     authentication: {
-      authenticationSource: '',
-      authenticationSourceType: '',
-      signupSourceName: '',
-      signupSocialAccount: null,
-      signupCategory: ''
+      authenticationSource: "Adobe ID",
+      authenticationSourceType: "Standard",
+      signupSourceName: "Web",
+      signupSocialAccount: "",
+      signupCategory: "Individual"
     },
     accountSystemInfo: {
-      type2eLinkedStatus: '',
-      linkToType2e: '',
-      type2eParentType: null
+      type2eLinkedStatus: "Not Linked",
+      linkToType2e: false,
+      type2eParentType: ""
     },
     languagePreferences: {
-      firstPref: '',
-      secondPref: null,
-      thirdPref: null
+      firstPref: "en-US",
+      secondPref: "",
+      thirdPref: ""
     },
     status: {
-      ccFunnelState: '',
-      dcFunnelState: '',
+      ccFunnelState: "Trial",
+      dcFunnelState: "Not Started",
       applicationDetails: {
-        customerState: ''
+        customerState: "Trial"
       }
     }
   },
   
   emailMarketingPermission: {
-    val: false,
-    time: ''
+    value: true,
+    source: "web",
+    time: "2024-03-15T10:30:00Z"
   },
   
   individualEntitlements: {
-    numberOfEntitledProducts: 0,
+    numberOfEntitledProducts: 1,
     productInfo: {
-      productCode: '',
-      productName: '',
-      productID: '',
-      family: '',
-      bundleID: null
+      productCode: "PHOTOSHOP_CC_INDV",
+      productName: "Adobe Photoshop CC - Individual",
+      productID: "PROD-PS-CC-I",
+      family: "Creative Cloud"
     },
     offerInfo: {
-      offerID: '',
-      offerType: '',
-      offerTermValue: 0,
-      offerTermUnit: '',
-      promotionType: null,
-      cloud: '',
-      commitmentType: ''
-    },
-    acquisitionInfo: {
-      routeToMarket: '',
-      marketSegment: '',
-      appStore: null
-    },
-    trialInfo: {
-      trialStartDTS: '',
-      trialEndDTS: ''
-    },
-    statusInfo: {
-      paymentStatus: '',
-      hardCancelDTS: null,
-      softCancelDTS: null,
-      tenure: '',
-      purchaseDTS: null,
-      lastPaymentConfirmationType: null
+      offerType: "Trial",
+      offerStatus: "Active",
+      offerStartDate: "2024-03-01T00:00:00Z",
+      offerEndDate: "2024-03-31T00:00:00Z"
     }
   },
   
   teamEntitlements: {
     contractInfo: {
-      buyingProgram: '',
-      contractStartDTS: '',
-      contractEndDTS: '',
-      contractStatus: '',
-      contractType: '',
-      marketSegment: ''
+      buyingProgram: "VIP",
+      contractStartDTS: "2024-02-01T00:00:00Z",
+      contractEndDTS: "2025-02-01T00:00:00Z",
+      contractStatus: "Active",
+      contractType: "Team"
     },
-    adminRoles: [],
-    b2bEntitlements: {
-      delegationInfo: {
-        delegationStartDTS: null,
-        delegationEndDTS: null,
-        delegationStatus: null
-      },
-      productInfo: {
-        productArrangementCode: '',
-        productCode: '',
-        productName: ''
-      },
-      offerInfo: {
-        offerID: '',
-        offerType: '',
-        offerTermValue: 0,
-        offerTermUnit: ''
-      },
-      statusInfo: {
-        purchaseDTS: '',
-        hardCancelDTS: ''
-      },
-      trialDetails: {
-        trialStartDTS: '',
-        trialEndDTS: '',
-        trialToPaidConversion: '',
-        trialToPaidConversionDTS: null
-      }
-    }
+    adminRoles: ["User"]
   },
   
   modelsAndScores: {
     overallScore: {
-      modelScore: 0,
-      modelPercentileScore: '',
-      modelScoreDate: '',
-      modelUserSegment: ''
+      modelName: "Customer Value",
+      modelPercentileScore: 75.5,
+      modelRawScore: 85,
+      modelVersion: "1.0",
+      modelLastUpdated: "2024-03-10T00:00:00Z"
     },
-    actions: [],
-    contents: []
+    actions: [
+      {
+        actionName: "View Product",
+        actionType: "Engagement",
+        actionStatus: "Completed",
+        actionDate: "2023-01-15",
+        actionResult: "Success"
+      }
+    ]
   },
   
   productActivity: {
     installs: {
       desktop: {
         mac: {
-          firstActivityDate: '',
-          recentActivityDate: '',
-          mostRecentAppVersion: '',
-          mostRecentOSVersion: ''
+          firstActivityDate: "2024-03-01T15:30:00Z",
+          recentActivityDate: "2024-03-15T09:45:00Z",
+          mostRecentAppVersion: "25.5.0",
+          mostRecentOSVersion: "14.3.1"
         },
         windows: {
-          firstActivityDate: '',
-          recentActivityDate: '',
-          mostRecentAppVersion: '',
-          mostRecentOSVersion: ''
+          firstActivityDate: "",
+          recentActivityDate: "",
+          mostRecentAppVersion: "",
+          mostRecentOSVersion: ""
         }
       },
-      web: {
-        firstActivityDate: '',
-        recentActivityDate: '',
-        mostRecentAppVersion: '',
-        mostRecentOSVersion: ''
+      web: {},
+    },
+    launches: {
+      desktop: {
+        mac: {
+          firstActivityDate: "2024-01-20T08:00:00Z",
+          recentActivityDate: "2024-08-12T20:00:00Z",
+          mostRecentAppVersion: "2024.1.0",
+          mostRecentOSVersion: "14.0"
+        },
+        windows: {
+          firstActivityDate: "2024-02-18T14:00:00Z",
+          recentActivityDate: "2024-08-15T09:00:00Z",
+          mostRecentAppVersion: "2024.2.0",
+          mostRecentOSVersion: "11.0.22621.1"
+        }
+      },
+      mobile: {
+        iOS: {
+          firstActivityDate: "2024-01-20T08:00:00Z",
+          recentActivityDate: "2024-08-12T20:00:00Z",
+          mostRecentAppVersion: "2024.1.0",
+          mostRecentOSVersion: "14.0"
+        },
+        android: {
+          firstActivityDate: "2024-02-18T14:00:00Z",
+          recentActivityDate: "2024-08-15T09:00:00Z",
+          mostRecentAppVersion: "2024.2.0",
+          mostRecentOSVersion: "11.0.22621.1"
+        }
       }
     }
   }

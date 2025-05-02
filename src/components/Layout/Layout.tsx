@@ -271,7 +271,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Xperience Intelligence Studio
+            DMe Xperience Intelligence Studio
           </Typography>
         </Toolbar>
       </AppBar>
@@ -418,7 +418,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     fontSize: '1.25rem'
                   }}
                 >
-                  Xperience Intelligence Studio
+                  DMe Xperience Intelligence Studio
                 </Typography>
               </Box>
             </Box>

@@ -4,148 +4,97 @@
       "firstName": "John",
       "lastName": "Doe",
       "countryCode": "US",
-      "userAccountCreationDate": "2024-01-01T00:00:00Z",
-      "isAdobeEmployee": false
+      "userAccountCreationDate": "2020-06-01T21:28:38Z",
+      "isAdobeEmployee": true
     },
     "email": {
-      "address": "john.doe@example.com",
-      "emailDomain": "example.com",
-      "hashedEmail": "5f4dcc3b5aa765d61d8327deb882cf99",
+      "address": "john.doe@gmail.com",
+      "emailDomain": "adobe.com",
+      "hashedEmail": "YES",
       "emailValidFlag": true
     },
     "authentication": {
-      "authenticationSource": "Adobe ID",
-      "authenticationSourceType": "Standard",
-      "signupSourceName": "Web",
-      "signupSocialAccount": null,
-      "signupCategory": "Individual"
+      "authenticationSource": "WCD",
+      "authenticationSourceType": "IND",
+      "signupSourceName": "Adobe.com",
+      "signupSocialAccount": "Apple",
+      "signupCategory": "Creative"
     },
     "accountSystemInfo": {
-      "type2eLinkedStatus": "Not Linked",
-      "linkToType2e": false,
-      "type2eParentType": null
+      "type2eLinkedStatus": "ACTIVE",
+      "linkToType2e": true,
+      "type2eParentType": "Type 1"
     },
     "languagePreferences": {
-      "firstPref": "en-US",
-      "secondPref": null,
-      "thirdPref": null
+      "firstPref": "en-us",
+      "secondPref": "en-gb",
+      "thirdPref": "de-de"
     },
     "status": {
-      "ccFunnelState": "Trial",
-      "dcFunnelState": "Not Started",
+      "ccFunnelState": "LAPSED",
+      "dcFunnelState": "LAPSED",
       "applicationDetails": {
-        "customerState": "Trial"
+        "customerState": "ENGAGED"
       }
     }
   },
   
   "emailMarketingPermission": {
-    "val": true,
+    "value": true,
+    "source": "web",
     "time": "2024-03-15T10:30:00Z"
   },
   
   "individualEntitlements": {
     "numberOfEntitledProducts": 1,
     "productInfo": {
-      "productCode": "PHOTOSHOP_CC_INDV",
-      "productName": "Adobe Photoshop CC - Individual",
-      "productID": "PROD-PS-CC-I",
-      "family": "Creative Cloud",
-      "bundleID": null
+      "productCode": "PHSP",
+      "productName": "ADOBE PHOTOSHOP",
+      "productID": "androidapp.lrmobile.puf.regular.test",
+      "family": "PHOTOSHOP_LIGHTROOM_FRESCO"
     },
     "offerInfo": {
-      "offerID": "TRIAL_PS_INDV_30D",
-      "offerType": "Trial",
-      "offerTermValue": 30,
-      "offerTermUnit": "Day",
-      "promotionType": "Standard Trial",
-      "cloud": "CREATIVE",
-      "commitmentType": "ABM"
-    },
-    "acquisitionInfo": {
-      "routeToMarket": "Direct Web Sale",
-      "marketSegment": "Consumer",
-      "appStore": null
-    },
-    "trialInfo": {
-      "trialStartDTS": "2024-03-01T00:00:00Z",
-      "trialEndDTS": "2024-03-31T00:00:00Z"
-    },
-    "statusInfo": {
-      "paymentStatus": "InTrial",
-      "hardCancelDTS": null,
-      "softCancelDTS": null,
-      "tenure": 15,
-      "purchaseDTS": null,
-      "lastPaymentConfirmationType": null
+      "offerType": "TRIALM",
+      "offerStatus": "Active",
+      "offerStartDate": "2020-05-01T21:28:38Z",
+      "offerEndDate": "2020-05-07T21:28:38Z"
     }
   },
   
   "teamEntitlements": {
     "contractInfo": {
       "buyingProgram": "VIP",
-      "contractStartDTS": "2024-02-01T00:00:00Z",
-      "contractEndDTS": "2025-02-01T00:00:00Z",
-      "contractStatus": "Active",
-      "contractType": "Team",
-      "marketSegment": "SMB"
+      "contractStartDTS": "2024-05-08 02:31:03",
+      "contractEndDTS": "2029-05-08 02:31:03",
+      "contractStatus": "ACTIVE",
+      "contractType": "TEAM_DIRECT"
     },
-    "adminRoles": ["User"],
-    "b2bEntitlements": {
-      "delegationInfo": {
-        "delegationStartDTS": null,
-        "delegationEndDTS": null,
-        "delegationStatus": null
-      },
-      "productInfo": {
-        "productArrangementCode": "TEAM-ARR-101",
-        "productCode": "ILLUSTRATOR_CC_TEAMS",
-        "productName": "Adobe Illustrator CC for Teams"
-      },
-      "offerInfo": {
-        "offerID": "ILLUSTRATOR_TEAMS_ANNUAL",
-        "offerType": "PaidSubscription",
-        "offerTermValue": 1,
-        "offerTermUnit": "Year"
-      },
-      "statusInfo": {
-        "purchaseDTS": "2024-02-01T10:00:00Z",
-        "hardCancelDTS": null
-      },
-      "trialDetails": {
-        "trialStartDTS": null,
-        "trialEndDTS": null,
-        "trialToPaidConversion": false,
-        "trialToPaidConversionDTS": null
-      }
-    }
+    "adminRoles": ["ORG_ADMIN"]
   },
   
   "modelsAndScores": {
     "overallScore": {
-      "modelScore": 85,
-      "modelPercentileScore": 75.5,
-      "modelScoreDate": "2024-03-10T00:00:00Z",
-      "modelUserSegment": "High Value"
+      "modelName": "Customer Value",
+      "modelPercentileScore": 95,
+      "modelRawScore": 80,
+      "modelVersion": "1.0",
+      "modelLastUpdated": "2023-01-01"
     },
     "actions": [
-        {
-        "action": "View",
-        "offerTerm": "Monthly",
-        "percentileScore": 90,
-        "productPrice": 29.99,
-        "rank": 1,
-        "score": 100,
-        "scoreDate": "2023-01-15",
-        "testID": "AB123"
-        }
-    ],
-    "contents": [
-        {
-        "surface": "Homepage",
-        "URL": "/product/photoshop",
-        "rank": 1
-        }
+      {
+        "actionName": "View Product",
+        "actionType": "Engagement",
+        "actionStatus": "Completed",
+        "actionDate": "2023-01-15",
+        "actionResult": "Success"
+      },
+      {
+        "actionName": "Purchase",
+        "actionType": "Conversion",
+        "actionStatus": "Completed",
+        "actionDate": "2023-02-01",
+        "actionResult": "Success"
+      }
     ]
   },
   
@@ -153,23 +102,53 @@
     "installs": {
       "desktop": {
         "mac": {
-          "firstActivityDate": "2024-03-01T15:30:00Z",
-          "recentActivityDate": "2024-03-15T09:45:00Z",
-          "mostRecentAppVersion": "25.5.0",
-          "mostRecentOSVersion": "14.3.1"
+          "firstActivityDate": "2022-01-15T10:00:00Z",
+          "recentActivityDate": "2024-07-28T14:30:00Z",
+          "mostRecentAppVersion": "24.2.1",
+          "mostRecentOSVersion": "12.6.3"
         },
         "windows": {
-          "firstActivityDate": null,
-          "recentActivityDate": null,
-          "mostRecentAppVersion": null,
-          "mostRecentOSVersion": null
+          "firstActivityDate": "2022-03-20T09:00:00Z",
+          "recentActivityDate": "2024-08-01T11:00:00Z",
+          "mostRecentAppVersion": "23.5.0",
+          "mostRecentOSVersion": "10.0.22621.1"
         }
       },
       "web": {
-        "firstActivityDate": "2024-03-02T10:15:00Z",
-        "recentActivityDate": "2024-03-14T16:20:00Z",
-        "mostRecentAppVersion": "1.2.0",
-        "mostRecentOSVersion": "web"
+        "firstActivityDate": "2022-01-15T10:00:00Z",
+        "recentActivityDate": "2024-07-28T14:30:00Z",
+        "mostRecentAppVersion": "24.2.1",
+        "mostRecentOSVersion": "12.6.3"
+      }
+    },
+    "launches": {
+      "desktop": {
+        "mac": {
+          "firstActivityDate": "2024-01-20T08:00:00Z",
+          "recentActivityDate": "2024-08-12T20:00:00Z",
+          "mostRecentAppVersion": "2024.1.0",
+          "mostRecentOSVersion": "14.0"
+        },
+        "windows": {
+          "firstActivityDate": "2024-02-18T14:00:00Z",
+          "recentActivityDate": "2024-08-15T09:00:00Z",
+          "mostRecentAppVersion": "2024.2.0",
+          "mostRecentOSVersion": "11.0.22621.1"
+        }
+      },
+      "mobile": {
+        "iOS": {
+          "firstActivityDate": "2024-01-20T08:00:00Z",
+          "recentActivityDate": "2024-08-12T20:00:00Z",
+          "mostRecentAppVersion": "2024.1.0",
+          "mostRecentOSVersion": "14.0"
+        },
+        "android": {
+          "firstActivityDate": "2024-02-18T14:00:00Z",
+          "recentActivityDate": "2024-08-15T09:00:00Z",
+          "mostRecentAppVersion": "2024.2.0",
+          "mostRecentOSVersion": "11.0.22621.1"
+        }
       }
     }
   }

@@ -34,7 +34,6 @@ import {
 import {
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
@@ -43,13 +42,17 @@ import {
 } from '@mui/icons-material';
 import { userData } from '../../data/userData';
 import { transformedUserData } from '../../data/transformedUserData';
-import { updateTransformedData } from '../../utils/userDataTransformer';
+import { 
+  updateTransformedData, 
+  getAllMappings, 
+  addMapping, 
+  deleteMapping,
+  PathMapping as IPathMapping 
+} from '../../utils/userDataTransformer';
 
-// Interface for XDM path mapping
-interface PathMapping {
-  id: string;
-  xdmPath: string;  // Original path from userData
-  level1: string;   // Transformed path from transformedUserData
+// Interface for XDM path mapping with UI-specific fields
+interface PathMapping extends Omit<IPathMapping, 'transform'> {
+  level1: string;
   level2: string;
   level3: string;
   level4: string;
@@ -111,16 +114,23 @@ const findMatchingTransformedPath = (xdmPath: string, xdmValue: any, transformed
   return ''; // Return empty string if no match found
 };
 
-// Function to split a path into levels
-const splitPathIntoLevels = (path: string): { [key: string]: string } => {
-  const levels = path.split('/');
+// Convert a flat transformed path to levels
+const splitPathIntoLevels = (path: string): { level1: string; level2: string; level3: string; level4: string; level5: string } => {
+  const parts = path.split('/');
   return {
-    level1: levels[0] || '',
-    level2: levels[1] || '',
-    level3: levels[2] || '',
-    level4: levels[3] || '',
-    level5: levels[4] || '',
+    level1: parts[0] || '',
+    level2: parts[1] || '',
+    level3: parts[2] || '',
+    level4: parts[3] || '',
+    level5: parts[4] || ''
   };
+};
+
+// Convert levels back to a flat path
+const combineLevelsToPath = (levels: { level1: string; level2: string; level3: string; level4: string; level5: string }): string => {
+  return [levels.level1, levels.level2, levels.level3, levels.level4, levels.level5]
+    .filter(Boolean)
+    .join('/');
 };
 
 const XDMPathMapping: React.FC = () => {
@@ -130,19 +140,156 @@ const XDMPathMapping: React.FC = () => {
   const xdmPaths = useMemo(() => extractXDMPaths(userData), []);
   const transformedPaths = useMemo(() => extractTransformedPaths(transformedUserData), []);
   
-  // Create initial mappings by matching values
+  // Create initial mappings by combining stored mappings and extracting from data structure
   const initialMappings = useMemo(() => {
-    return xdmPaths.map((xdmPath, index) => {
-      const xdmValue = getValueAtPath(userData, xdmPath);
-      const transformedPath = findMatchingTransformedPath(xdmPath, xdmValue, transformedPaths);
-      const levels = splitPathIntoLevels(transformedPath);
-      
-      return {
-        id: `${index}`,
-        xdmPath,
+    // Get stored mappings from userDataTransformer
+    const existingMappings = getAllMappings();
+    const mappingsMap = new Map<string, PathMapping>();
+    
+    // Add existing mappings first
+    existingMappings.forEach(mapping => {
+      const levels = splitPathIntoLevels(mapping.transformedPath);
+      mappingsMap.set(mapping.xdmPath, {
+        id: mapping.id,
+        xdmPath: mapping.xdmPath,
+        transformedPath: mapping.transformedPath,
         ...levels
-      } as PathMapping;
+      });
     });
+    
+    // Add any XDM paths that don't have a mapping yet
+    xdmPaths.forEach((xdmPath, index) => {
+      if (!mappingsMap.has(xdmPath)) {
+        const xdmValue = getValueAtPath(userData, xdmPath);
+        const transformedPath = findMatchingTransformedPath(xdmPath, xdmValue, transformedPaths);
+        
+        // Define default levels based on path structure or use empty strings
+        let levels = splitPathIntoLevels(transformedPath);
+        
+        // If no match was found, create a suggestive mapping based on the path structure
+        if (!transformedPath) {
+          // Map user details paths
+          if (xdmPath.includes('person/name') || xdmPath.includes('homeAddress') || xdmPath.includes('isAdobeEmployee')) {
+            levels = {
+              level1: 'User Details',
+              level2: 'Identity',
+              level3: xdmPath.split('/').pop() || '',
+              level4: '',
+              level5: ''
+            };
+          } else if (xdmPath.includes('personalEmail') || xdmPath.includes('emailDomain') || xdmPath.includes('emailValidFlag') || xdmPath.includes('hashedEmail')) {
+            levels = {
+              level1: 'User Details',
+              level2: 'Email',
+              level3: xdmPath.split('/').pop() || '',
+              level4: '',
+              level5: ''
+            };
+          } else if (xdmPath.includes('authenticationSource') || xdmPath.includes('signupSource')) {
+            levels = {
+              level1: 'User Details',
+              level2: 'Authentication',
+              level3: xdmPath.split('/').pop() || '',
+              level4: '',
+              level5: ''
+            };
+          } else if (xdmPath.includes('type2e')) {
+            levels = {
+              level1: 'User Details',
+              level2: 'Account System Info',
+              level3: xdmPath.split('/').pop() || '',
+              level4: '',
+              level5: ''
+            };
+          } else if (xdmPath.includes('Pref')) {
+            levels = {
+              level1: 'User Details',
+              level2: 'Language Preferences',
+              level3: xdmPath.split('/').pop() || '',
+              level4: '',
+              level5: ''
+            };
+          } else if (xdmPath.includes('FunnelState') || xdmPath.includes('customerState')) {
+            levels = {
+              level1: 'User Details',
+              level2: 'Status',
+              level3: xdmPath.split('/').pop() || '',
+              level4: '',
+              level5: ''
+            };
+          }
+          // Map entitlements paths
+          else if (xdmPath.includes('entitlements/phsp_direct_individual')) {
+            const parts = xdmPath.split('/');
+            const lastPart = parts[parts.length - 1];
+            levels = {
+              level1: 'Individual Entitlements',
+              level2: 'Product Info',
+              level3: lastPart,
+              level4: '',
+              level5: ''
+            };
+          } else if (xdmPath.includes('contract')) {
+            const parts = xdmPath.split('/');
+            const lastPart = parts[parts.length - 1];
+            levels = {
+              level1: 'Team Entitlements',
+              level2: 'Contract Info',
+              level3: lastPart,
+              level4: '',
+              level5: ''
+            };
+          }
+          // Map models and scores paths
+          else if (xdmPath.includes('modelsAndScores')) {
+            const parts = xdmPath.split('/');
+            const lastPart = parts[parts.length - 1];
+            if (xdmPath.includes('actions')) {
+              levels = {
+                level1: 'Models and Scores',
+                level2: 'Actions',
+                level3: lastPart,
+                level4: '',
+                level5: ''
+              };
+            } else {
+              levels = {
+                level1: 'Models and Scores',
+                level2: 'Overall Score',
+                level3: lastPart,
+                level4: '',
+                level5: ''
+              };
+            }
+          }
+          // Map product activity paths
+          else if (xdmPath.includes('appUsage')) {
+            const parts = xdmPath.split('/');
+            const platform = parts.includes('desktop') ? 'Desktop' : parts.includes('web') ? 'Web' : 'Mobile';
+            const os = parts.includes('mac') ? 'Mac' : parts.includes('windows') ? 'Windows' : parts.includes('iOS') ? 'iOS' : 'Android';
+            levels = {
+              level1: 'Product Activity',
+              level2: parts.includes('appInstalls') ? 'Installs' : 'Launches',
+              level3: platform,
+              level4: os,
+              level5: parts[parts.length - 1]
+            };
+          }
+        }
+
+        // Create the transformed path from levels
+        const updatedTransformedPath = combineLevelsToPath(levels);
+
+        mappingsMap.set(xdmPath, {
+          id: `${Date.now()}-${index}`,
+          xdmPath,
+          transformedPath: updatedTransformedPath,
+          ...levels
+        });
+      }
+    });
+    
+    return Array.from(mappingsMap.values());
   }, [xdmPaths, transformedPaths]);
 
   const [mappings, setMappings] = useState<PathMapping[]>(initialMappings);
@@ -153,6 +300,7 @@ const XDMPathMapping: React.FC = () => {
   const [newMapping, setNewMapping] = useState<PathMapping>({
     id: '',
     xdmPath: '',
+    transformedPath: '',
     level1: '',
     level2: '',
     level3: '',
@@ -186,13 +334,66 @@ const XDMPathMapping: React.FC = () => {
   // Extract unique options for each level from mappings
   useEffect(() => {
     const newOptions = {
-      level1: new Set<string>(),
-      level2: new Set<string>(),
-      level3: new Set<string>(),
-      level4: new Set<string>(),
-      level5: new Set<string>()
+      level1: new Set([
+        'User Details',
+        'Individual Entitlements',
+        'Team Entitlements',
+        'Models and Scores',
+        'Product Activity'
+      ]),
+      level2: new Set([
+        'Identity',
+        'Email',
+        'Authentication',
+        'Account System Info',
+        'Language Preferences',
+        'Status',
+        'Product Info',
+        'Contract Info',
+        'Overall Score',
+        'Actions',
+        'Installs',
+        'Launches'
+      ]),
+      level3: new Set([
+        'Desktop',
+        'Web',
+        'Mobile',
+        'firstName',
+        'lastName',
+        'countryCode',
+        'address',
+        'emailDomain',
+        'hashedEmail',
+        'emailValidFlag',
+        'authenticationSource',
+        'signupSourceName',
+        'signupSocialAccount',
+        'type2eLinkedStatus',
+        'linkToType2e',
+        'type2eParentType',
+        'firstPref',
+        'secondPref',
+        'thirdPref',
+        'ccFunnelState',
+        'dcFunnelState',
+        'customerState'
+      ]),
+      level4: new Set([
+        'Mac',
+        'Windows',
+        'iOS',
+        'Android'
+      ]),
+      level5: new Set([
+        'firstActivityDate',
+        'recentActivityDate',
+        'mostRecentAppVersion',
+        'mostRecentOSVersion'
+      ])
     };
 
+    // Add all existing values from mappings
     mappings.forEach(mapping => {
       if (mapping.level1) newOptions.level1.add(mapping.level1);
       if (mapping.level2) newOptions.level2.add(mapping.level2);
@@ -231,6 +432,7 @@ const XDMPathMapping: React.FC = () => {
       setNewMapping({
         id: '',
         xdmPath: '',
+        transformedPath: '',
         level1: '',
         level2: '',
         level3: '',
@@ -239,6 +441,41 @@ const XDMPathMapping: React.FC = () => {
       });
     }
   }, [openDialog]);
+
+  // Listen for mapping updates from other components
+  useEffect(() => {
+    const handleMappingUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ 
+        xdmPath: string; 
+        transformedPath: string; 
+      }>;
+      
+      const { xdmPath, transformedPath } = customEvent.detail;
+      
+      // Update our local mappings
+      setMappings(prevMappings => {
+        const updatedMappings = [...prevMappings];
+        const existingIndex = updatedMappings.findIndex(m => m.xdmPath === xdmPath);
+        
+        if (existingIndex >= 0) {
+          const levels = splitPathIntoLevels(transformedPath);
+          updatedMappings[existingIndex] = {
+            ...updatedMappings[existingIndex],
+            transformedPath,
+            ...levels
+          };
+        }
+        
+        return updatedMappings;
+      });
+    };
+    
+    window.addEventListener('mappingUpdated', handleMappingUpdate);
+    
+    return () => {
+      window.removeEventListener('mappingUpdated', handleMappingUpdate);
+    };
+  }, []);
 
   const handleOpenDialog = (mapping?: PathMapping) => {
     if (mapping) {
@@ -249,6 +486,7 @@ const XDMPathMapping: React.FC = () => {
       setNewMapping({
         id: Date.now().toString(),
         xdmPath: '',
+        transformedPath: '',
         level1: '',
         level2: '',
         level3: '',
@@ -333,10 +571,15 @@ const XDMPathMapping: React.FC = () => {
 
   const handleSelectChange = (e: SelectChangeEvent<string>) => {
     const { name, value } = e.target;
-    setNewMapping(prev => ({ ...prev, [name]: value }));
+    setNewMapping(prev => {
+      const updated = { ...prev, [name]: value };
+      // Update transformedPath when level fields change
+      updated.transformedPath = combineLevelsToPath(updated);
+      return updated;
+    });
   };
 
-  // Modified handleSaveMapping to update transformedUserData
+  // Modified handleSaveMapping to update transformedUserData and mappings store
   const handleSaveMapping = () => {
     if (!newMapping.level1) {
       setSnackbar({
@@ -347,54 +590,77 @@ const XDMPathMapping: React.FC = () => {
       return;
     }
 
+    // Ensure transformedPath is up to date with the levels
+    const transformedPath = combineLevelsToPath(newMapping);
+    
     if (editingMapping) {
-      // Create the new transformed path
-      const newTransformedPath = [
-        newMapping.level1,
-        newMapping.level2,
-        newMapping.level3,
-        newMapping.level4,
-        newMapping.level5
-      ].filter(Boolean).join('/');
+      // Update the mapping in the transformer
+      addMapping({
+        id: newMapping.id,
+        xdmPath: newMapping.xdmPath,
+        transformedPath
+      });
 
-      // Update the mapping in state
-      setMappings(mappings.map(m => {
-        if (m.id === editingMapping.id) {
-          // Update transformedUserData
-          const updatedData = updateTransformedData(
-            m.xdmPath,
-            newTransformedPath,
-            transformedUserData
-          );
+      // Update our local state
+      setMappings(prevMappings => 
+        prevMappings.map(m => {
+          if (m.id === editingMapping.id) {
+            return { ...newMapping, transformedPath };
+          }
+          return m;
+        })
+      );
 
-          // Dispatch a custom event to notify DataWizard
-          const event = new CustomEvent('transformedDataUpdated', {
-            detail: { updatedData }
-          });
-          window.dispatchEvent(event);
+      // Update the transformed data
+      const updatedData = updateTransformedData(
+        newMapping.xdmPath,
+        transformedPath,
+        transformedUserData
+      );
 
-          return newMapping;
-        }
-        return m;
-      }));
+      // Dispatch a custom event to notify DataWizard
+      const event = new CustomEvent('transformedDataUpdated', {
+        detail: { updatedData }
+      });
+      window.dispatchEvent(event);
 
       setSnackbar({
         open: true,
         message: 'Mapping updated successfully',
         severity: 'success'
       });
+    } else {
+      // Add new mapping 
+      addMapping({
+        id: newMapping.id,
+        xdmPath: newMapping.xdmPath,
+        transformedPath
+      });
+
+      // Update our local state
+      setMappings(prevMappings => [...prevMappings, { ...newMapping, transformedPath }]);
+
+      // Update the transformed data
+      const updatedData = updateTransformedData(
+        newMapping.xdmPath,
+        transformedPath,
+        transformedUserData
+      );
+
+      // Notify other components
+      const event = new CustomEvent('transformedDataUpdated', {
+        detail: { updatedData }
+      });
+      window.dispatchEvent(event);
+
+      setSnackbar({
+        open: true,
+        message: 'New mapping added successfully',
+        severity: 'success'
+      });
     }
     
     handleCloseDialog();
-  };
-
-  // Disable the ability to add new mappings since they should come from userData
-  const handleDeleteMapping = () => {
-    setSnackbar({
-      open: true,
-      message: 'Mappings cannot be deleted as they are derived from user data',
-      severity: 'warning'
-    });
   };
 
   const handleCloseSnackbar = () => {
@@ -403,9 +669,7 @@ const XDMPathMapping: React.FC = () => {
 
   // Generate the full path from the levels
   const getFullPath = (mapping: PathMapping) => {
-    return [mapping.level1, mapping.level2, mapping.level3, mapping.level4, mapping.level5]
-      .filter(Boolean)
-      .join('/');
+    return combineLevelsToPath(mapping);
   };
 
   // Render Select component for level fields
@@ -621,13 +885,6 @@ const XDMPathMapping: React.FC = () => {
                         sx={{ color: theme.palette.primary.main }}
                       >
                         <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton 
-                        size="small" 
-                        onClick={handleDeleteMapping}
-                        sx={{ color: theme.palette.error.main }}
-                      >
-                        <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Box>
                   </TableCell>

@@ -987,7 +987,7 @@ const HomePage: React.FC = () => {
           lineHeight: 1.5,
           maxWidth: '600px'
         }}>
-          Welcome to your Xperience Intelligence Studio
+          Welcome to your DMe Xperience Intelligence Studio
         </Typography>
       </Box>
 
