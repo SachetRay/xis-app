@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/xis-app/static/js/main.d736fab9.js",
+    "main.js": "/xis-app/static/js/main.1f312991.js",
     "index.html": "/xis-app/index.html",
-    "main.d736fab9.js.map": "/xis-app/static/js/main.d736fab9.js.map"
+    "main.1f312991.js.map": "/xis-app/static/js/main.1f312991.js.map"
   },
   "entrypoints": [
-    "static/js/main.d736fab9.js"
+    "static/js/main.1f312991.js"
   ]
 }
