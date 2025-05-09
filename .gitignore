@@ -32,4 +32,4 @@ yarn-error.log*
 
 # cache
 .cache/
-.eslintcache 
+.eslintcache node_modules/.cache/
