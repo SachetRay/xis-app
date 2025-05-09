@@ -66,6 +66,13 @@ interface SelectedDetails {
   status?: string;
   dataType?: string;
   xdmPath?: string;
+  contributingSchemas?: string[];
+  created?: string;
+  dataClassification?: string;
+  attributeName?: string;
+  displayName?: string;
+  definition?: string;
+  sampleValue?: any;
 }
 
 interface FolderTypeDetails {
@@ -454,46 +461,28 @@ const DataWizard: React.FC = () => {
     };
 
     if (item.type === 'folder') {
-      const folderTypes: FolderTypes = {
-        'Anonymous User': {
-          description: 'Contains attributes related to anonymous user tracking and identification.',
-          usageCount: 1247,
-          status: 'Active',
-        },
-        'Email Domain Properties': {
-          description: 'Email-related configurations and domain-specific settings.',
-          usageCount: 856,
-          status: 'Active',
-        },
-        'Member Account GUID': {
-          description: 'Global unique identifier management for member accounts.',
-          usageCount: 2341,
-          status: 'Active',
-        },
-        'System Computed Attributes': {
-          description: 'Automatically calculated and maintained system attributes.',
-          usageCount: 1589,
-          status: 'Active',
-        }
-      };
-
       return {
         ...baseDetails,
-        ...(folderTypes[item.name] || {
-          description: 'A collection of related attributes and configurations.',
-          usageCount: Math.floor(Math.random() * 2000) + 500,
-          status: Math.random() > 0.1 ? 'Active' : 'Deprecated'
-        })
+        description: 'A collection of related attributes and configurations.',
+        contributingSchemas: ['Schema A', 'Schema B', 'Schema C'],
+        created: new Date(Date.now() - Math.random() * 20000000000).toLocaleDateString(),
+        lastModified: baseDetails.lastModified,
       };
     }
 
-    // For files (attributes), include XDM path
+    // For files (attributes), include XDM path and new fields
     return {
       ...baseDetails,
       description: getAttributeDescription(item.name),
       status: Math.random() > 0.1 ? 'Active' : 'Deprecated',
       dataType: typeof item.value,
-      xdmPath: `xdm:${getOriginalPath(path)}`
+      xdmPath: `xdm:${getOriginalPath(path)}`,
+      dataClassification: 'Core',
+      attributeName: item.name,
+      displayName: item.name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+      definition: getAttributeDescription(item.name),
+      sampleValue: item.value ?? 'Sample Value',
+      created: new Date(Date.now() - Math.random() * 20000000000).toLocaleDateString(),
     };
   };
 
@@ -767,241 +756,145 @@ const DataWizard: React.FC = () => {
     if (!selectedDetails) {
       return null;
     }
-
-    return (
-      <Paper sx={{ 
-        width: 320,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        borderRadius: '12px',
-        boxShadow: `0 2px 12px ${alpha('#000', 0.04)}`,
-      }}>
-        {/* Path Navigation with enhanced styling */}
-        {selectedDetails?.path?.length > 0 && renderPath(detailsPathScrollRef, true, true)}
-
-        {/* Details Content */}
-        <Box sx={{ 
-          flex: 1, 
-          overflow: 'auto',
-          p: 2
-        }}>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-              fontSize: '0.75rem', 
-              fontWeight: 600, 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.5px',
-              color: alpha('#000', 0.5)
-            }}>
-              Description
-            </Typography>
-            <Typography variant="body2" sx={{ 
-              color: alpha('#000', 0.7), 
-              fontSize: '0.875rem', 
-              lineHeight: 1.6 
-            }}>
-              {selectedDetails.description}
-            </Typography>
-          </Box>
-
-          {/* Add XDM Path for attributes (files) */}
-          {selectedDetails.type === 'file' && selectedDetails.xdmPath && (
+    if (selectedDetails.type === 'folder') {
+      return (
+        <Paper sx={{ width: 320, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: '12px', boxShadow: `0 2px 12px ${alpha('#000', 0.04)}` }}>
+          {selectedDetails?.path?.length > 0 && renderPath(detailsPathScrollRef, true, true)}
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
             <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 600, 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.5px',
-                color: alpha('#000', 0.5)
-              }}>
-                XDM Path
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+                Description
               </Typography>
-              <Typography variant="body2" sx={{ 
-                wordBreak: 'break-all',
-                backgroundColor: alpha('#f5f5f5', 0.5),
-                p: 1.5,
-                borderRadius: '8px',
-                fontSize: '0.75rem',
-                fontFamily: 'monospace',
-                color: alpha('#000', 0.7),
-                lineHeight: 1.5
-              }}>
-                {selectedDetails.xdmPath}
+              <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem', lineHeight: 1.6 }}>
+                {selectedDetails.description}
               </Typography>
             </Box>
-          )}
-
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+                Contributing Schemas
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {selectedDetails.contributingSchemas?.map((schema, idx) => (
+                  <Chip key={idx} label={schema} size="small" sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main, fontWeight: 500, '& .MuiChip-label': { px: 1.5, fontSize: '0.75rem' } }} />
+                ))}
+              </Box>
+            </Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+                Created
+              </Typography>
+              <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem' }}>
+                {selectedDetails.created}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+                Last Modified
+              </Typography>
+              <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem' }}>
+                {selectedDetails.lastModified}
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
+      );
+    }
+    // Leaf node (file/attribute)
+    return (
+      <Paper sx={{ width: 320, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: '12px', boxShadow: `0 2px 12px ${alpha('#000', 0.04)}` }}>
+        {selectedDetails?.path?.length > 0 && renderPath(detailsPathScrollRef, true, true)}
+        <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-              fontSize: '0.75rem', 
-              fontWeight: 600, 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.5px',
-              color: alpha('#000', 0.5)
-            }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+              Data Classification
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem' }}>
+              {selectedDetails.dataClassification}
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+              Attribute Name
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem' }}>
+              {selectedDetails.attributeName}
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+              Display Name
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem' }}>
+              {selectedDetails.displayName}
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+              Definition
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem' }}>
+              {selectedDetails.definition}
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+              Data Type
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem' }}>
+              {selectedDetails.dataType}
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+              Full XDM Path
+            </Typography>
+            <Typography variant="body2" sx={{ wordBreak: 'break-all', backgroundColor: alpha('#f5f5f5', 0.5), p: 1.5, borderRadius: '8px', fontSize: '0.75rem', fontFamily: 'monospace', color: alpha('#000', 0.7), lineHeight: 1.5 }}>
+              {selectedDetails.xdmPath}
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
               Status
             </Typography>
-            <Chip
-              label={selectedDetails.status}
-              size="small"
-              sx={{
-                backgroundColor: selectedDetails.status === 'Active' 
-                  ? alpha(theme.palette.success.main, 0.1)
-                  : alpha(theme.palette.warning.main, 0.1),
-                color: selectedDetails.status === 'Active'
-                  ? theme.palette.success.main
-                  : theme.palette.warning.main,
-                fontWeight: 500,
-                '& .MuiChip-label': {
-                  px: 1.5,
-                  fontSize: '0.75rem'
-                }
-              }}
-            />
+            <Chip label={selectedDetails.status} size="small" sx={{ backgroundColor: selectedDetails.status === 'Active' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.warning.main, 0.1), color: selectedDetails.status === 'Active' ? theme.palette.success.main : theme.palette.warning.main, fontWeight: 500, '& .MuiChip-label': { px: 1.5, fontSize: '0.75rem' } }} />
           </Box>
-
-          {selectedDetails.type === 'folder' ? (
-            <>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-                  fontSize: '0.75rem', 
-                  fontWeight: 600, 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '0.5px',
-                  color: alpha('#000', 0.5)
-                }}>
-                  Usage Count
-                </Typography>
-                <Typography variant="body2" sx={{ 
-                  color: alpha('#000', 0.7), 
-                  fontSize: '0.875rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1
-                }}>
-                  <BarChartIcon sx={{ fontSize: 16, color: theme.palette.primary.main }} />
-                  {selectedDetails.usageCount?.toLocaleString()} references
-                </Typography>
-              </Box>
-            </>
-          ) : (
-            <>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-                  fontSize: '0.75rem', 
-                  fontWeight: 600, 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '0.5px',
-                  color: alpha('#000', 0.5)
-                }}>
-                  Data Type
-                </Typography>
-                <Chip
-                  label={selectedDetails.dataType}
-                  size="small"
-                  sx={{
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                    color: theme.palette.primary.main,
-                    fontWeight: 500,
-                    '& .MuiChip-label': {
-                      px: 1.5,
-                      fontSize: '0.75rem'
-                    }
-                  }}
-                />
-              </Box>
-
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-                  fontSize: '0.75rem', 
-                  fontWeight: 600, 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '0.5px',
-                  color: alpha('#000', 0.5)
-                }}>
-                  Value
-                </Typography>
-                <Typography variant="body2" sx={{ 
-                  wordBreak: 'break-all',
-                  backgroundColor: alpha('#f5f5f5', 0.5),
-                  p: 1.5,
-                  borderRadius: '8px',
-                  fontSize: '0.75rem',
-                  fontFamily: 'monospace',
-                  color: alpha('#000', 0.7),
-                  lineHeight: 1.5
-                }}>
-                  {JSON.stringify(selectedDetails.value, null, 2)}
-                </Typography>
-              </Box>
-            </>
-          )}
-
-          <Divider sx={{ my: 2, opacity: 0.08 }} />
-
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-              fontSize: '0.75rem', 
-              fontWeight: 600, 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.5px',
-              color: alpha('#000', 0.5)
-            }}>
-              Owner
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+              Sample Value
             </Typography>
-            <Typography variant="body2" sx={{ 
-              color: alpha('#000', 0.7), 
+            <Typography variant="body2" sx={{ wordBreak: 'break-all', backgroundColor: alpha('#f5f5f5', 0.5), p: 1.5, borderRadius: '8px', fontSize: '0.75rem', fontFamily: 'monospace', color: alpha('#000', 0.7), lineHeight: 1.5 }}>
+              {JSON.stringify(selectedDetails.sampleValue, null, 2)}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: alpha('#000', 0.5) }}>
+              Created
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha('#000', 0.7), fontSize: '0.875rem' }}>
+              {selectedDetails.created}
+            </Typography>
+          </Box>
+          {/* View More Details button for leaf nodes */}
+          <Button
+            variant="contained"
+            size="small"
+            onClick={handleViewMore}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '8px',
+              boxShadow: 'none',
+              mt: 2,
               fontSize: '0.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
-              <PersonIcon sx={{ fontSize: 16, color: alpha('#000', 0.5) }} />
-              {selectedDetails.owner}
-            </Typography>
-          </Box>
-
-          <Box sx={{ mb: selectedDetails.type === 'file' ? 3 : 0 }}>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ 
-              fontSize: '0.75rem', 
-              fontWeight: 600, 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.5px',
-              color: alpha('#000', 0.5)
-            }}>
-              Last Modified
-            </Typography>
-            <Typography variant="body2" sx={{ 
-              color: alpha('#000', 0.7), 
-              fontSize: '0.875rem' 
-            }}>
-              {selectedDetails.lastModified}
-            </Typography>
-          </Box>
-
-          {/* Show View More button only for attributes (files) */}
-          {selectedDetails.type === 'file' && (
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleViewMore}
-              sx={{
-                textTransform: 'none',
-                borderRadius: '8px',
+              py: 1,
+              px: 2,
+              width: '100%',
+              '&:hover': {
                 boxShadow: 'none',
-                mt: 1,
-                fontSize: '0.875rem',
-                py: 1,
-                px: 2,
-                '&:hover': {
-                  boxShadow: 'none',
-                }
-              }}
-            >
-              View More Details
-            </Button>
-          )}
+              }
+            }}
+          >
+            View More Details
+          </Button>
         </Box>
       </Paper>
     );

@@ -29,6 +29,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ChatIcon from '@mui/icons-material/Chat';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -55,40 +56,40 @@ const menuItems = [
     color: '#673AB7' // Deep Purple
   },
   { 
-    text: 'Dev Toolbox', 
-    icon: <CodeIcon />, 
-    path: '/dev-toolbox',
-    color: '#FF9800' // Orange
-  },
-  { 
-    text: 'Data Guardian', 
-    icon: <ShieldIcon />, 
-    path: '/data-guardian',
-    color: '#2196F3' // Blue
+    text: 'Workbench', 
+    icon: <DashboardIcon />, 
+    path: '/workbench',
+    color: '#607D8B', // Blue Grey
   },
   { 
     text: 'SegmentGenie', 
     icon: <GroupsIcon />, 
     path: '/segment-genie',
-    color: '#9C27B0' // Purple
+    color: '#009688' // Teal
+  },
+  { 
+    text: 'Dev Toolbox', 
+    icon: <CodeIcon />, 
+    path: '/dev-toolbox',
+    color: '#FF9800', // Orange
+  },
+  { 
+    text: 'Data Guardian', 
+    icon: <ShieldIcon />, 
+    path: '/data-guardian',
+    color: '#2196F3', // Blue
   },
   { 
     text: 'Resource IQ', 
     icon: <Inventory2Icon />, 
     path: '/resource-iq',
-    color: '#F44336' // Red
+    color: '#F44336', // Red
   },
   { 
     text: 'Document Hub', 
     icon: <MenuBookIcon />, 
     path: '/document-hub',
-    color: '#00BCD4' // Cyan
-  },
-  { 
-    text: 'Ask DGP', 
-    icon: <ChatIcon />, 
-    path: '/ask-dgp',
-    color: '#795548' // Brown
+    color: '#00BCD4', // Cyan
   },
 ];
 
@@ -141,12 +142,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             >
               <ListItem
                 button
-                onClick={() => {
-                  navigate(item.path);
-                  if (isMobile) {
-                    setMobileOpen(false);
-                  }
-                }}
+                onClick={() => { navigate(item.path); if (isMobile) { setMobileOpen(false); } }}
                 sx={{
                   my: 0.5,
                   borderRadius: '12px',
@@ -158,6 +154,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: !isExpanded ? 'center' : 'flex-start',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  '& .MuiListItemText-root': {
+                    textAlign: 'left',
+                    marginLeft: 0
+                  },
                   '&:hover': {
                     backgroundColor: alpha(item.color, 0.08),
                     transform: 'translateX(4px)',
@@ -165,11 +167,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       transform: 'scale(1.1)',
                     }
                   },
-                  textAlign: 'left',
-                  '& .MuiListItemText-root': {
-                    textAlign: 'left',
-                    marginLeft: 0
-                  }
                 }}
               >
                 <ListItemIcon 

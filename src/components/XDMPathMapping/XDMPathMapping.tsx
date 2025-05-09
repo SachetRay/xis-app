@@ -790,15 +790,16 @@ const XDMPathMapping: React.FC = () => {
         boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
         overflow: 'hidden'
       }}>
-        <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)' }}>
-          <Table stickyHeader>
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)', minWidth: 1200 }}>
+          <Table stickyHeader sx={{ tableLayout: 'auto', minWidth: 1200 }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ 
                   fontWeight: 600, 
                   width: '25%',
                   padding: '16px',
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05) 
+                  backgroundColor: '#e3f2fd',
+                  zIndex: 2
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     XDM Path
@@ -810,33 +811,39 @@ const XDMPathMapping: React.FC = () => {
                 <TableCell sx={{ 
                   fontWeight: 600, 
                   padding: '16px',
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05) 
+                  backgroundColor: '#e3f2fd',
+                  zIndex: 2
                 }}>Level 1</TableCell>
                 <TableCell sx={{ 
                   fontWeight: 600, 
                   padding: '16px',
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05) 
+                  backgroundColor: '#e3f2fd',
+                  zIndex: 2
                 }}>Level 2</TableCell>
                 <TableCell sx={{ 
                   fontWeight: 600, 
                   padding: '16px',
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05) 
+                  backgroundColor: '#e3f2fd',
+                  zIndex: 2
                 }}>Level 3</TableCell>
                 <TableCell sx={{ 
                   fontWeight: 600, 
                   padding: '16px',
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05) 
+                  backgroundColor: '#e3f2fd',
+                  zIndex: 2
                 }}>Level 4</TableCell>
                 <TableCell sx={{ 
                   fontWeight: 600, 
                   padding: '16px',
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05) 
+                  backgroundColor: '#e3f2fd',
+                  zIndex: 2
                 }}>Level 5</TableCell>
                 <TableCell sx={{ 
                   fontWeight: 600, 
                   width: '20%',
                   padding: '16px',
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05) 
+                  backgroundColor: '#e3f2fd',
+                  zIndex: 2
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     Transformed Path
@@ -848,7 +855,8 @@ const XDMPathMapping: React.FC = () => {
                 <TableCell sx={{ 
                   fontWeight: 600, 
                   padding: '16px',
-                  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                  backgroundColor: '#e3f2fd',
+                  zIndex: 2,
                   width: '80px'
                 }}>Actions</TableCell>
               </TableRow>

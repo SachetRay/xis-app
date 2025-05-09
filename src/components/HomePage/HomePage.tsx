@@ -39,6 +39,7 @@ import {
   InsertDriveFile as InsertDriveFileIcon,
   KeyboardArrowRight as KeyboardArrowRightIcon,
   FolderOpen as FolderOpenIcon,
+  Dashboard as WorkbenchIcon,
 } from '@mui/icons-material';
 import { userData } from '../../data/userData';
 import { transformUserData } from '../../utils/userDataTransformer';
@@ -53,6 +54,8 @@ interface Tool {
   name: string;
   icon: React.ReactNode;
   color: string;
+  disabled?: boolean;
+  placeholder?: boolean;
 }
 
 const tools: Tool[] = [
@@ -61,6 +64,18 @@ const tools: Tool[] = [
     name: 'Data Wizard',
     icon: <DataWizardIcon />,
     color: '#673AB7', // Deep Purple
+  },
+  {
+    id: 'workbench',
+    name: 'Workbench',
+    icon: <WorkbenchIcon />,
+    color: '#607D8B',
+  },
+  {
+    id: 'segment-genie',
+    name: 'SegmentGenie',
+    icon: <SegmentGenieIcon />,
+    color: '#009688', // Teal
   },
   {
     id: 'dev-toolbox',
@@ -75,12 +90,6 @@ const tools: Tool[] = [
     color: '#2196F3', // Blue
   },
   {
-    id: 'segment-genie',
-    name: 'SegmentGenie',
-    icon: <SegmentGenieIcon />,
-    color: '#9C27B0', // Purple
-  },
-  {
     id: 'resource-iq',
     name: 'ResourceIQ',
     icon: <ResourceIQIcon />,
@@ -91,12 +100,6 @@ const tools: Tool[] = [
     name: 'Document Hub',
     icon: <DocumentIcon />,
     color: '#00BCD4', // Cyan
-  },
-  {
-    id: 'ask-dgp',
-    name: 'Ask DGP',
-    icon: <AskDGPIcon />,
-    color: '#795548', // Brown
   },
 ];
 
@@ -1123,7 +1126,7 @@ const HomePage: React.FC = () => {
               borderRadius: '16px',
               backgroundColor: 'transparent',
               '&:hover': {
-                backgroundColor: alpha(tool.color, 0.04),
+                backgroundColor: alpha(tool.color, 0.08),
                 transform: 'translateY(-2px)',
                 '& .tool-icon': {
                   backgroundColor: alpha(tool.color, 0.1),
